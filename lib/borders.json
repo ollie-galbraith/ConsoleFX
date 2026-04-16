@@ -1,0 +1,50 @@
+{
+    "curved": {
+        "top_left": "╭",
+        "top_right": "╮",
+        "bottom_left": "╰",
+        "bottom_right": "╯",
+        "horizontal": "─",
+        "vertical": "│",
+        "vertical_left": "├",
+        "vertical_right": "┤",
+        "horizontal_top": "┬",
+        "horizontal_bottom": "┴"
+    },
+    "single": {
+        "top_left": "┌",
+        "top_right": "┐",
+        "bottom_left": "└",
+        "bottom_right": "┘",
+        "horizontal": "─",
+        "vertical": "│",
+        "vertical_left": "├",
+        "vertical_right": "┤",
+        "horizontal_top": "┬",
+        "horizontal_bottom": "┴"
+    },
+    "double": {
+        "top_left": "╔",
+        "top_right": "╗",
+        "bottom_left": "╚",
+        "bottom_right": "╝",
+        "horizontal": "═",
+        "vertical": "║",
+        "vertical_left": "╠",
+        "vertical_right": "╣",
+        "horizontal_top": "╦",
+        "horizontal_bottom": "╩"
+    },
+    "dotted": {
+        "top_left": "┌",
+        "top_right": "┐",
+        "bottom_left": "└",
+        "bottom_right": "┘",
+        "horizontal": "┄",
+        "vertical": "┆",
+        "vertical_left": "├",
+        "vertical_right": "┤",
+        "horizontal_top": "┬",
+        "horizontal_bottom": "┴"
+    }
+}

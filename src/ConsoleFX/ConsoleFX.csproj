@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <ModuleName>$(AssemblyName)</ModuleName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PowerShellStandard.Library" Version="5.1.1" PrivateAssets="All" />
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <ItemGroup>
+      <FilesToCopy Include="$(TargetDir)**\*.dll" />
+    </ItemGroup>
+    
+    <Copy 
+      SourceFiles="@(FilesToCopy)" 
+      DestinationFolder="$(ProjectDir)../../lib/%(RecursiveDir)" 
+      SkipUnchangedFiles="true" />
+      
+    <Message Text="Module files successfully copied to dist folder." Importance="high" />
+  </Target>
+
+</Project>
