@@ -1,0 +1,114 @@
+using System;
+// using System.Collections.Generic;
+// using System.IO;
+// using System.Linq;
+
+namespace ConsoleFX
+    {
+        public class GridMenu
+            {
+                private List<string> _options;
+                private int _selectedIndex = 0;
+                private int _columns;
+                private bool _isRunning = true;
+                private bool _border = true;
+                private int _padding = 1;
+                private bool _fullWidth = false;
+                private BorderStyle? _borderStyle;
+
+                public string SelectedItemStyle = ConsoleFX.Foreground.Red;
+                public string DefaultStyle = ConsoleFX.Foreground.White;
+
+                public string BorderStyle = ConsoleFX.Foreground.Blue;
+                public string TitleStyle = ConsoleFX.Foreground.Blue;
+
+                public GridMenu (List<string> options, int columns = 3, bool border = true, int padding = 1, bool fullWidth = false)
+                    {
+                        _options = options;
+                        _columns = columns;
+                        _border = border;
+                        _padding = padding;
+                        _fullWidth = fullWidth;
+
+                        if (border)
+                            {
+                                BorderManager borderManager = new BorderManager();
+                                borderManager.LoadJson("{\"curved\":{\"top_left\":\"╭\",\"top_right\":\"╮\",\"bottom_left\":\"╰\",\"bottom_right\":\"╯\",\"horizontal\":\"─\",\"vertical\":\"│\",\"vertical_left\":\"├\",\"vertical_right\":\"┤\",\"horizontal_top\":\"┬\",\"horizontal_bottom\":\"┴\"},\"single\":{\"top_left\":\"┌\",\"top_right\":\"┐\",\"bottom_left\":\"└\",\"bottom_right\":\"┘\",\"horizontal\":\"─\",\"vertical\":\"│\",\"vertical_left\":\"├\",\"vertical_right\":\"┤\",\"horizontal_top\":\"┬\",\"horizontal_bottom\":\"┴\"},\"double\":{\"top_left\":\"╔\",\"top_right\":\"╗\",\"bottom_left\":\"╚\",\"bottom_right\":\"╝\",\"horizontal\":\"═\",\"vertical\":\"║\",\"vertical_left\":\"╠\",\"vertical_right\":\"╣\",\"horizontal_top\":\"╦\",\"horizontal_bottom\":\"╩\"},\"dotted\":{\"top_left\":\"┌\",\"top_right\":\"┐\",\"bottom_left\":\"└\",\"bottom_right\":\"┘\",\"horizontal\":\"┄\",\"vertical\":\"┆\",\"vertical_left\":\"├\",\"vertical_right\":\"┤\",\"horizontal_top\":\"┬\",\"horizontal_bottom\":\"┴\"}}");
+                                _borderStyle = borderManager.GetStyle("curved");
+                            }
+                    }
+
+                public string Run()
+                    {
+                        Console.CursorVisible = false;
+
+                        Console.SetCursorPosition(0,0);
+                        Console.Clear();
+
+                        while (_isRunning)
+                            {
+                                Render();
+                                var key = Console.ReadKey(true).Key;
+                                HandleInput(key);
+                            }
+
+                        Console.CursorVisible = true;
+                        return this._options[_selectedIndex];
+                    }
+
+                private void Render()
+                    {
+                        var grid = GridConverter.FromList(this._options, this._columns);
+                        
+                        int selectedRow = _selectedIndex / grid.Columns;
+                        int selectedColumn = _selectedIndex % grid.Columns;
+
+                        string originalText = _options[_selectedIndex];
+                        grid.SetCellValue($"{ConsoleFX.Format.Italic}{SelectedItemStyle}{originalText}{ConsoleFX.Format.Reset}{DefaultStyle}", selectedRow, selectedColumn);
+
+                        Console.SetCursorPosition(0,0);
+
+                        if (!this._border)
+                            {
+                                grid.Render();
+                                return;
+                            }
+
+                        string gridOutput     = grid.ToString();
+                        string[] gridString   = gridOutput.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+
+                        CharMatrix charMatrix = new CharMatrix(gridString, this._padding, this._fullWidth);
+
+                        charMatrix.SetBorder(this._borderStyle ?? throw new InvalidOperationException("Border style not initialized."), BorderStyle);
+                        Console.Write(charMatrix.Render());
+                    }
+
+                private void HandleInput(ConsoleKey key)
+                    {
+                        int rows = (int)Math.Ceiling((double)_options.Count / _columns);
+                        switch (key)
+                            {
+                                case ConsoleKey.UpArrow:
+                                    if (_selectedIndex >= _columns) _selectedIndex -= _columns;
+                                    break;
+                                case ConsoleKey.DownArrow:
+                                    if (_selectedIndex + _columns < _options.Count) _selectedIndex += _columns;
+                                    break;
+                                case ConsoleKey.LeftArrow:
+                                    if (_selectedIndex % _columns > 0) _selectedIndex--;
+                                    break;
+                                case ConsoleKey.RightArrow:
+                                    if (_selectedIndex < _options.Count - 1) _selectedIndex++;
+                                    break;
+                                case ConsoleKey.Enter:
+                                    _isRunning = false;
+                                    break;
+                                case ConsoleKey.Escape:
+                                    _selectedIndex = -1; // Indicate cancellation
+                                    _isRunning = false;
+                                    break;
+                            }
+                    }
+            }
+    }
+

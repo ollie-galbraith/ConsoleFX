@@ -10,11 +10,12 @@ namespace ConsoleFX
                 public int Width { get; private set; }
                 public int Height { get; private set; }
                 public int Padding { get; set; }
-                
+                public bool FullWidth { get; private set; }
+
                 // Use '!' to tell the compiler these are initialized in the constructor/SetSize
                 public char[,] Buffer { get; private set; } = null!;
                 public string?[,] StyleBuffer { get; private set; } = null!;
-                
+
                 public Dictionary<string, object?> Border { get; private set; } = new Dictionary<string, object?>();
 
                 private const string ESC = "\x1B";
@@ -46,6 +47,7 @@ namespace ConsoleFX
 
                         int calculatedHeight = text.Length + 2;
                         this.Padding = padding;
+                        this.FullWidth = fullWidth;
                         
                         // Initializing arrays here satisfies CS8618
                         SetSize(calculatedWidth, calculatedHeight);
@@ -194,24 +196,50 @@ namespace ConsoleFX
                         return sb.ToString();
                     }
 
-                public string Render()
+                public string Render(int? x = null, int? y = null)
                     {
                         string reset = $"{ESC}[0m";
-                        StringBuilder sb = new StringBuilder();
+                        StringBuilder content = new StringBuilder();
 
-                        for (int y = 0; y < Height; y++)
+                        for (int yy = 0; yy < Height; yy++)
                             {
-                                for (int x = 0; x < Width; x++)
+                                for (int xx = 0; xx < Width; xx++)
                                     {
-                                        string? style = StyleBuffer[y, x];
+                                        string? style = StyleBuffer[yy, xx];
                                         bool hasStyle = !string.IsNullOrEmpty(style);
 
-                                        if (hasStyle) sb.Append(style);
-                                        sb.Append(Buffer[y, x]);
-                                        if (hasStyle) sb.Append(reset);
+                                        if (hasStyle) content.Append(style);
+                                        content.Append(Buffer[yy, xx]);
+                                        if (hasStyle) content.Append(reset);
                                     }
-                                if (y < Height - 1) sb.AppendLine();
+                                if (yy < Height - 1) content.AppendLine();
                             }
+
+                        if (FullWidth && !y.HasValue) return content.ToString();
+
+                        int? effectiveX = null;
+                        if (x.HasValue && !FullWidth)
+                            {
+                                effectiveX = Math.Clamp(x.Value, 1, Console.BufferWidth - Width);
+                            }
+
+                        StringBuilder sb = new StringBuilder();
+                        if (y.HasValue)
+                            {
+                                sb.Append(Erase.EntireScreen);
+                                sb.Append(Cursor.JumpTo(y.Value, effectiveX ?? 1));
+                            }
+                        else if (effectiveX.HasValue)
+                            {
+                                sb.Append(Cursor.Column(effectiveX.Value));
+                            }
+
+                        string matrixContent = content.ToString();
+                        if (effectiveX.HasValue)
+                            {
+                                matrixContent = matrixContent.Replace("\n", "\n" + Cursor.Column(effectiveX.Value));
+                            }
+                        sb.Append(matrixContent);
                         return sb.ToString();
                     }
 

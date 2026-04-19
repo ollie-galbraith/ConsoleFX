@@ -89,8 +89,12 @@ Function Add-Border
             [Switch]$FullWidth,
             [Parameter(Mandatory=$False, HelpMessage='The padding to add around the text inside the border. Default is 1')]
             [int]$Padding = 1,
-            [Parameter(Mandatory=$False, HelpMessage='Do not perform word-wrapping or collapse whitespace. Use this when the input already contains the exact spacing you want to preserve.')]            
-            [Switch]$NoWrap
+            [Parameter(Mandatory=$False, HelpMessage='Do not perform word-wrapping or collapse whitespace. Use this when the input already contains the exact spacing you want to preserve.')]
+            [Switch]$NoWrap,
+            [Parameter(Mandatory=$False, HelpMessage='The X position of the border. Default is the current cursor position')]
+            [Nullable[Int]]$XPosition,
+            [Parameter(Mandatory=$False, HelpMessage='The Y position of the border. Default is the current cursor position')]
+            [Nullable[Int]]$YPosition
         )
 
         DynamicParam
@@ -132,25 +136,20 @@ Function Add-Border
                 [System.Collections.ArrayList]$TextControlCodes = @()
                 [System.Collections.ArrayList]$TitleControlCodes = @()
 
-                # accumulator for all incoming lines from the pipeline
                 $AccumulatedText = @()
             }
         Process
             {
-                # each object coming through the pipeline is treated as a raw line
                 $AccumulatedText += $Object
             }
         End
             {
-                # combine and/or wrap the accumulated lines into the final array
                 If($NoWrap)
                     {
-                        # preserve spacing exactly; each pipeline object is one line
                         $TextArray = $AccumulatedText
                     }
                 Else
                     {
-                        # join into a single string, then let Split-LongString wrap as needed
                         $Joined = $AccumulatedText -join "`n"
                         $TextArray = $Joined | Split-LongString -Padding (2 + ($Padding * 2))
                     }
@@ -201,6 +200,6 @@ Function Add-Border
                         $CharMatrix.SetTitle($Title, ($TitleControlCodes -join ''))
                     }
 
-                $CharMatrix.Render()
+                $CharMatrix.Render($XPosition, $YPosition)
             }
     }
