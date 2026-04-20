@@ -13,16 +13,22 @@ namespace ConsoleFX
                 private static readonly Regex AnsiRegex = new Regex(@"\x1B\[[^mK]*[mK]", RegexOptions.Compiled);
 
                 public int[] _cachedWidths;
+                private readonly int _defaultGap;
+                private readonly int _widthOffset;
                 public int Padding { get; set; }
+                public bool FullWidth { get; set; }
                 public int Rows => _strings.GetLength(0);
                 public int Columns => _strings.GetLength(1);
 
-                public GridManager(int rows, int columns, int defaultGap = 1)
+                public GridManager(int rows, int columns, int defaultGap = 1, bool fullWidth = false, int widthOffset = 0)
                     {
                         _strings = new string[rows, columns];
                         _spacing = new int[rows, columns - 1];
                         _cachedWidths = new int[columns];
                         _visualLengths = new int[rows, columns];
+                        _defaultGap = defaultGap;
+                        FullWidth = fullWidth;
+                        _widthOffset = widthOffset;
 
                         // Initialize with empty defaults
                         for (int row = 0; row < rows; row++)
@@ -79,6 +85,34 @@ namespace ConsoleFX
                         this._recalculate = false;
                     }
 
+                private void ApplyFullWidthSpacing()
+                    {
+                        if (!FullWidth || this.Columns <= 1) return;
+
+                        int availableWidth = Console.WindowWidth - (Padding * 2) - _widthOffset;
+                        if (availableWidth <= 0) return;
+
+                        int contentWidth = 0;
+                        for (int column = 0; column < this.Columns; column++)
+                            {
+                                contentWidth += this._cachedWidths[column];
+                            }
+
+                        int gapCount = this.Columns - 1;
+                        int minTotalGap = _defaultGap * gapCount;
+                        int targetTotalGap = Math.Max(minTotalGap, availableWidth - contentWidth);
+                        int baseGap = targetTotalGap / gapCount;
+                        int extra = targetTotalGap % gapCount;
+
+                        for (int row = 0; row < this.Rows; row++)
+                            {
+                                for (int column = 0; column < gapCount; column++)
+                                    {
+                                        this._spacing[row, column] = baseGap + (column < extra ? 1 : 0);
+                                    }
+                            }
+                    }
+
                 private int GetVisualLength(string input)
                     {
                         if (string.IsNullOrEmpty(input)) return 0;
@@ -91,6 +125,7 @@ namespace ConsoleFX
                 public string ToString(bool verticalPadding)
                     {
                         UpdateWidths();
+                        ApplyFullWidthSpacing();
 
                         var stringBuilder = new StringBuilder();
                         string horizontalPadding = new string(' ', this.Padding);

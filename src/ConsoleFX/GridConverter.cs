@@ -2,9 +2,9 @@ namespace ConsoleFX
     {
         public static class GridConverter
             {
-                public static GridManager FromList(List<string> items, int targetColumns, int defaultGap = 2)
+                public static GridManager FromList(List<string> items, int targetColumns, int defaultGap = 2, bool fullWidth = false, int widthOffset = 0)
                     {
-                        if (items == null || items.Count == 0) return new GridManager(0,0, defaultGap);
+                        if (items == null || items.Count == 0) return new GridManager(0,0, defaultGap, fullWidth, widthOffset);
 
                         int maxWidth = Console.WindowWidth;
                         int currentColumns = targetColumns;
@@ -12,7 +12,7 @@ namespace ConsoleFX
                         while (currentColumns > 0)
                             {
                                 int rows = (int)Math.Ceiling((double)items.Count / currentColumns);
-                                var trialGrid = new GridManager(rows, currentColumns, defaultGap);
+                                var trialGrid = new GridManager(rows, currentColumns, defaultGap, fullWidth, widthOffset);
 
                                 for (int i = 0; i < items.Count; i++)
                                     {
@@ -26,7 +26,7 @@ namespace ConsoleFX
                                 currentColumns--;
                             }
 
-                        return new GridManager(0,0, defaultGap);
+                        return new GridManager(0,0, defaultGap, fullWidth, widthOffset);
                     }
 
                 public static GridManager FromTable(List<List<string>> tableData, int defaultGap = 2)

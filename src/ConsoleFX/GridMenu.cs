@@ -8,21 +8,25 @@ namespace ConsoleFX
         public class GridMenu
             {
                 private List<string> _options;
-                private int _selectedIndex = 0;
+
                 private int _columns;
+                private int _padding = 1;
+                private int _selectedIndex = 0;
+
                 private bool _isRunning = true;
                 private bool _border = true;
-                private int _padding = 1;
                 private bool _fullWidth = false;
+
+                private string? _borderTitle = null;
+
                 private BorderStyle? _borderStyle;
 
-                public string SelectedItemStyle = ConsoleFX.Foreground.Red;
-                public string DefaultStyle = ConsoleFX.Foreground.White;
+                public string SelectedItemColor = ConsoleFX.Foreground.Red;
+                public string DefaultColor = ConsoleFX.Foreground.White;
+                public string BorderColor = ConsoleFX.Foreground.Blue;
+                public string TitleColor = ConsoleFX.Foreground.Blue;
 
-                public string BorderStyle = ConsoleFX.Foreground.Blue;
-                public string TitleStyle = ConsoleFX.Foreground.Blue;
-
-                public GridMenu (List<string> options, int columns = 3, bool border = true, int padding = 1, bool fullWidth = false)
+                public GridMenu (List<string> options, int columns = 3, int padding = 1, bool fullWidth = false, bool border = true, string? title = null)
                     {
                         _options = options;
                         _columns = columns;
@@ -35,6 +39,31 @@ namespace ConsoleFX
                                 BorderManager borderManager = new BorderManager();
                                 borderManager.LoadJson("{\"curved\":{\"top_left\":\"╭\",\"top_right\":\"╮\",\"bottom_left\":\"╰\",\"bottom_right\":\"╯\",\"horizontal\":\"─\",\"vertical\":\"│\",\"vertical_left\":\"├\",\"vertical_right\":\"┤\",\"horizontal_top\":\"┬\",\"horizontal_bottom\":\"┴\"},\"single\":{\"top_left\":\"┌\",\"top_right\":\"┐\",\"bottom_left\":\"└\",\"bottom_right\":\"┘\",\"horizontal\":\"─\",\"vertical\":\"│\",\"vertical_left\":\"├\",\"vertical_right\":\"┤\",\"horizontal_top\":\"┬\",\"horizontal_bottom\":\"┴\"},\"double\":{\"top_left\":\"╔\",\"top_right\":\"╗\",\"bottom_left\":\"╚\",\"bottom_right\":\"╝\",\"horizontal\":\"═\",\"vertical\":\"║\",\"vertical_left\":\"╠\",\"vertical_right\":\"╣\",\"horizontal_top\":\"╦\",\"horizontal_bottom\":\"╩\"},\"dotted\":{\"top_left\":\"┌\",\"top_right\":\"┐\",\"bottom_left\":\"└\",\"bottom_right\":\"┘\",\"horizontal\":\"┄\",\"vertical\":\"┆\",\"vertical_left\":\"├\",\"vertical_right\":\"┤\",\"horizontal_top\":\"┬\",\"horizontal_bottom\":\"┴\"}}");
                                 _borderStyle = borderManager.GetStyle("curved");
+
+                                if (!string.IsNullOrEmpty(title))
+                                    {
+                                        _borderTitle = title;
+                                    }
+                            }
+                    }
+
+                public void SetColour(string? selectedItemColor = null, string? defaultColor = null, string? borderColor = null , string? titleColor = null)
+                    {
+                        if (!string.IsNullOrEmpty(selectedItemColor))
+                            {
+                                SelectedItemColor = selectedItemColor;
+                            }
+                        if (!string.IsNullOrEmpty(defaultColor))
+                            {
+                                DefaultColor = defaultColor;
+                            }
+                        if (!string.IsNullOrEmpty(borderColor))
+                            {
+                                BorderColor = borderColor;
+                            }
+                        if (!string.IsNullOrEmpty(titleColor))
+                            {
+                                TitleColor = titleColor;
                             }
                     }
 
@@ -42,6 +71,7 @@ namespace ConsoleFX
                     {
                         Console.CursorVisible = false;
 
+                        _isRunning = true;
                         Console.SetCursorPosition(0,0);
                         Console.Clear();
 
@@ -58,13 +88,28 @@ namespace ConsoleFX
 
                 private void Render()
                     {
-                        var grid = GridConverter.FromList(this._options, this._columns);
+                        int widthOffset = this._border ? 2 + (this._padding * 2) : 0;
+                        var grid = GridConverter.FromList(
+                            this._options,
+                            this._columns,
+                            defaultGap: 2,
+                            fullWidth: this._fullWidth,
+                            widthOffset: widthOffset
+                        );
                         
+                        // Apply DefaultStyle to all items
+                        for (int i = 0; i < this._options.Count; i++)
+                            {
+                                int row = i / grid.Columns;
+                                int col = i % grid.Columns;
+                                grid.SetCellValue($"{DefaultColor}{this._options[i]}", row, col);
+                            }
+                        
+                        // Override selected item with special styling
                         int selectedRow = _selectedIndex / grid.Columns;
                         int selectedColumn = _selectedIndex % grid.Columns;
-
                         string originalText = _options[_selectedIndex];
-                        grid.SetCellValue($"{ConsoleFX.Format.Italic}{SelectedItemStyle}{originalText}{ConsoleFX.Format.Reset}{DefaultStyle}", selectedRow, selectedColumn);
+                        grid.SetCellValue($"{ConsoleFX.Format.Italic}{ConsoleFX.Format.Bold}{SelectedItemColor}{originalText}{ConsoleFX.Format.Reset}{DefaultColor}", selectedRow, selectedColumn);
 
                         Console.SetCursorPosition(0,0);
 
@@ -75,11 +120,15 @@ namespace ConsoleFX
                             }
 
                         string gridOutput     = grid.ToString();
-                        string[] gridString   = gridOutput.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+                        string[] gridString   = gridOutput.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
 
                         CharMatrix charMatrix = new CharMatrix(gridString, this._padding, this._fullWidth);
 
-                        charMatrix.SetBorder(this._borderStyle ?? throw new InvalidOperationException("Border style not initialized."), BorderStyle);
+                        charMatrix.SetBorder(this._borderStyle ?? throw new InvalidOperationException("Border style not initialized."), BorderColor);
+                        if (!string.IsNullOrEmpty(this._borderTitle))
+                            {
+                                charMatrix.SetTitle(this._borderTitle, TitleColor);
+                            }
                         Console.Write(charMatrix.Render());
                     }
 
