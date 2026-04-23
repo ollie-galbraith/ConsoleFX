@@ -26,7 +26,7 @@ namespace ConsoleFX
                 public string BorderColor = ConsoleFX.Foreground.Blue;
                 public string TitleColor = ConsoleFX.Foreground.Blue;
 
-                public GridMenu (List<string> options, int columns = 3, int padding = 1, bool fullWidth = false, bool border = true, string? title = null)
+                public GridMenu (List<string> options, int columns = 3, int padding = 1, bool fullWidth = false, bool border = true, string? borderStyle = null, string? title = null)
                     {
                         _options = options;
                         _columns = columns;
@@ -37,8 +37,27 @@ namespace ConsoleFX
                         if (border)
                             {
                                 BorderManager borderManager = new BorderManager();
-                                borderManager.LoadJson("{\"curved\":{\"top_left\":\"╭\",\"top_right\":\"╮\",\"bottom_left\":\"╰\",\"bottom_right\":\"╯\",\"horizontal\":\"─\",\"vertical\":\"│\",\"vertical_left\":\"├\",\"vertical_right\":\"┤\",\"horizontal_top\":\"┬\",\"horizontal_bottom\":\"┴\"},\"single\":{\"top_left\":\"┌\",\"top_right\":\"┐\",\"bottom_left\":\"└\",\"bottom_right\":\"┘\",\"horizontal\":\"─\",\"vertical\":\"│\",\"vertical_left\":\"├\",\"vertical_right\":\"┤\",\"horizontal_top\":\"┬\",\"horizontal_bottom\":\"┴\"},\"double\":{\"top_left\":\"╔\",\"top_right\":\"╗\",\"bottom_left\":\"╚\",\"bottom_right\":\"╝\",\"horizontal\":\"═\",\"vertical\":\"║\",\"vertical_left\":\"╠\",\"vertical_right\":\"╣\",\"horizontal_top\":\"╦\",\"horizontal_bottom\":\"╩\"},\"dotted\":{\"top_left\":\"┌\",\"top_right\":\"┐\",\"bottom_left\":\"└\",\"bottom_right\":\"┘\",\"horizontal\":\"┄\",\"vertical\":\"┆\",\"vertical_left\":\"├\",\"vertical_right\":\"┤\",\"horizontal_top\":\"┬\",\"horizontal_bottom\":\"┴\"}}");
-                                _borderStyle = borderManager.GetStyle("curved");
+
+                                var assembly = typeof(GridMenu).Assembly;
+                                // borderManager.LoadJson("{\"curved\":{\"top_left\":\"╭\",\"top_right\":\"╮\",\"bottom_left\":\"╰\",\"bottom_right\":\"╯\",\"horizontal\":\"─\",\"vertical\":\"│\",\"vertical_left\":\"├\",\"vertical_right\":\"┤\",\"horizontal_top\":\"┬\",\"horizontal_bottom\":\"┴\"},\"single\":{\"top_left\":\"┌\",\"top_right\":\"┐\",\"bottom_left\":\"└\",\"bottom_right\":\"┘\",\"horizontal\":\"─\",\"vertical\":\"│\",\"vertical_left\":\"├\",\"vertical_right\":\"┤\",\"horizontal_top\":\"┬\",\"horizontal_bottom\":\"┴\"},\"double\":{\"top_left\":\"╔\",\"top_right\":\"╗\",\"bottom_left\":\"╚\",\"bottom_right\":\"╝\",\"horizontal\":\"═\",\"vertical\":\"║\",\"vertical_left\":\"╠\",\"vertical_right\":\"╣\",\"horizontal_top\":\"╦\",\"horizontal_bottom\":\"╩\"},\"dotted\":{\"top_left\":\"┌\",\"top_right\":\"┐\",\"bottom_left\":\"└\",\"bottom_right\":\"┘\",\"horizontal\":\"┄\",\"vertical\":\"┆\",\"vertical_left\":\"├\",\"vertical_right\":\"┤\",\"horizontal_top\":\"┬\",\"horizontal_bottom\":\"┴\"}}");
+                                var stream = assembly.GetManifestResourceStream("ConsoleFX.Resources.borders.json");
+                                if (stream != null)
+                                    {
+                                        using (stream)
+                                            {
+                                                borderManager.LoadJsonFromStream(stream);
+                                            }
+                                    }
+                                else
+                                    {
+                                        throw new InvalidOperationException("Failed to load embedded resource 'ConsoleFX.Resources.borders.json'");
+                                    }
+
+                                _borderStyle = borderManager.GetStyle(string.IsNullOrEmpty(borderStyle) ? "curved" : borderStyle);
+                                if (_borderStyle == null)
+                                    {
+                                        throw new InvalidOperationException($"Border style '{borderStyle ?? "curved"}' not found. Check if BorderManager.LoadJsonFromStream() properly deserialized the JSON.");
+                                    }
 
                                 if (!string.IsNullOrEmpty(title))
                                     {
@@ -47,7 +66,7 @@ namespace ConsoleFX
                             }
                     }
 
-                public void SetColour(string? selectedItemColor = null, string? defaultColor = null, string? borderColor = null , string? titleColor = null)
+                public void SetColor(string? selectedItemColor = null, string? defaultColor = null, string? borderColor = null , string? titleColor = null)
                     {
                         if (!string.IsNullOrEmpty(selectedItemColor))
                             {

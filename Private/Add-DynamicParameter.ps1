@@ -9,6 +9,8 @@ Function Add-DynamicParameter
             [Parameter(Mandatory=$True)]
             [Type]$ParameterType,
             [Parameter(Mandatory=$False)]
+            [string]$HelpMessage,
+            [Parameter(Mandatory=$False)]
             [string]$ParameterSetName,
             [Parameter(Mandatory=$False)]
             [Switch]$ValueFromPipeline,
@@ -18,6 +20,10 @@ Function Add-DynamicParameter
             [string[]]$ValidateSet = $null,
             [Parameter(Mandatory=$False)]
             [string[]]$ValidateRange = $null,
+            [Parameter(Mandatory=$False)]
+            [scriptblock]$ArgumentCompleter,
+            [Parameter(Mandatory=$False)]
+            [System.Attribute[]]$CustomAttributes = @(),
             [Parameter(Mandatory=$False)]
             [Switch]$Mandatory,
             [Parameter(Mandatory=$False)]
@@ -34,12 +40,22 @@ Function Add-DynamicParameter
         $ParamAttribute.ValueFromPipeline = $ValueFromPipeline
         $ParamAttribute.ValueFromPipelineByPropertyName = $ValueFromPipelineByPropertyName
         
+        If([String]::IsNullOrEmpty($HelpMessage) -eq $False)
+            {
+                $ParamAttribute.HelpMessage = $HelpMessage
+            }
+
         If([String]::IsNullOrEmpty($ParameterSetName) -eq $false)
             {
                 $ParamAttribute.ParameterSetName = $ParameterSetName
             }
 
         $Attributes.Add($ParamAttribute)
+
+        ForEach($Attribute in $CustomAttributes)
+            {
+                $Attributes.Add($Attribute)
+            }
 
         If($ValidateSet)
             {
@@ -50,6 +66,11 @@ Function Add-DynamicParameter
             {
                 $ValidateRangeAttribute = New-Object System.Management.Automation.ValidateRangeAttribute($ValidateRange)
                 $Attributes.Add($ValidateRangeAttribute)
+            }
+        If($ArgumentCompleter)
+            {
+                $CompleterAttribute = New-Object System.Management.Automation.ArgumentCompleterAttribute($ArgumentCompleter)
+                $Attributes.Add($CompleterAttribute)
             }
 
         $RuntimeDefinedParameter = [System.Management.Automation.RuntimeDefinedParameter]::new($ParameterName, $ParameterType, $Attributes)

@@ -108,14 +108,22 @@ namespace ConsoleFX
     // SGR based codes
     public enum Color
         {
-            Black   = 0,
-            Red     = 1,
-            Green   = 2,
-            Yellow  = 3,
-            Blue    = 4,
-            Magenta = 5,
-            Cyan    = 6,
-            White   = 7
+            Black         = 0,
+            Red           = 1,
+            Green         = 2,
+            Yellow        = 3,
+            Blue          = 4,
+            Magenta       = 5,
+            Cyan          = 6,
+            White         = 7,
+            BrightBlack   = 10,
+            BrightRed     = 11,
+            BrightGreen   = 12,
+            BrightYellow  = 13,
+            BrightBlue    = 14,
+            BrightMagenta = 15,
+            BrightCyan    = 16,
+            BrightWhite   = 17
         }
 
     public enum FormatType

@@ -10,6 +10,8 @@
 
   <ItemGroup>
     <PackageReference Include="PowerShellStandard.Library" Version="5.1.1" PrivateAssets="All" />
+    <EmbeddedResource Include="../../lib/borders.json" Link="Resources/borders.json" />
+    <EmbeddedResource Include="../../lib/spinners.json" Link="Resources/spinners.json" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

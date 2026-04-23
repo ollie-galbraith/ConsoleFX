@@ -67,7 +67,13 @@ namespace ConsoleFX
                 return;
             }
 
-            // 5. Handle Specific Color Models
+            // 5. Handle ConsoleFX.Color enum values directly
+            if (arguments is ConsoleFX.Color)
+            {
+                return;
+            }
+
+            // 6. Handle Specific Color Models
             if (arguments is RGB || 
                 arguments is Hex || 
                 arguments is HSV || 
