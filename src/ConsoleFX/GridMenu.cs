@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 // using System.Collections.Generic;
 // using System.IO;
 // using System.Linq;
@@ -10,36 +11,49 @@ namespace ConsoleFX
                 private List<string> _options;
 
                 private int _columns;
+                private int _effectiveColumns = 1;
                 private int _padding = 1;
                 private int _selectedIndex = 0;
+                private int _startRow = 0;
+                private int _lastWindowWidth;
+                private int _lastWindowHeight;
+
+                private int _borderInset = 0;
+                private bool _isDimmed = false;
+                private string? _lastRenderedOutput = null;
 
                 private bool _isRunning = true;
+                private bool _wasCancelled = false;
                 private bool _border = true;
                 private bool _fullWidth = false;
 
                 private string? _borderTitle = null;
 
                 private BorderStyle? _borderStyle;
+                public GridMenu? UnderlayMenu { get; set; }
+                public bool WasCancelled => _wasCancelled;
 
                 public string SelectedItemColor = ConsoleFX.Foreground.Red;
                 public string DefaultColor = ConsoleFX.Foreground.White;
                 public string BorderColor = ConsoleFX.Foreground.Blue;
                 public string TitleColor = ConsoleFX.Foreground.Blue;
 
-                public GridMenu (List<string> options, int columns = 3, int padding = 1, bool fullWidth = false, bool border = true, string? borderStyle = null, string? title = null)
+                public GridMenu (List<string> options, int columns = 3, int padding = 1, bool fullWidth = false, bool border = true, string? borderStyle = null, string? title = null, int startRow = 0, int borderInset = 0, bool isDimmed = false)
                     {
                         _options = options;
-                        _columns = columns;
+                        _columns = columns > 0 ? columns : 3;
                         _border = border;
                         _padding = padding;
                         _fullWidth = fullWidth;
+                        _startRow = Math.Max(0, startRow);
+                        _borderInset = Math.Max(0, borderInset);
+                        _isDimmed = isDimmed;
 
                         if (border)
                             {
                                 BorderManager borderManager = new BorderManager();
 
                                 var assembly = typeof(GridMenu).Assembly;
-                                // borderManager.LoadJson("{\"curved\":{\"top_left\":\"╭\",\"top_right\":\"╮\",\"bottom_left\":\"╰\",\"bottom_right\":\"╯\",\"horizontal\":\"─\",\"vertical\":\"│\",\"vertical_left\":\"├\",\"vertical_right\":\"┤\",\"horizontal_top\":\"┬\",\"horizontal_bottom\":\"┴\"},\"single\":{\"top_left\":\"┌\",\"top_right\":\"┐\",\"bottom_left\":\"└\",\"bottom_right\":\"┘\",\"horizontal\":\"─\",\"vertical\":\"│\",\"vertical_left\":\"├\",\"vertical_right\":\"┤\",\"horizontal_top\":\"┬\",\"horizontal_bottom\":\"┴\"},\"double\":{\"top_left\":\"╔\",\"top_right\":\"╗\",\"bottom_left\":\"╚\",\"bottom_right\":\"╝\",\"horizontal\":\"═\",\"vertical\":\"║\",\"vertical_left\":\"╠\",\"vertical_right\":\"╣\",\"horizontal_top\":\"╦\",\"horizontal_bottom\":\"╩\"},\"dotted\":{\"top_left\":\"┌\",\"top_right\":\"┐\",\"bottom_left\":\"└\",\"bottom_right\":\"┘\",\"horizontal\":\"┄\",\"vertical\":\"┆\",\"vertical_left\":\"├\",\"vertical_right\":\"┤\",\"horizontal_top\":\"┬\",\"horizontal_bottom\":\"┴\"}}");
                                 var stream = assembly.GetManifestResourceStream("ConsoleFX.Resources.borders.json");
                                 if (stream != null)
                                     {
@@ -53,7 +67,8 @@ namespace ConsoleFX
                                         throw new InvalidOperationException("Failed to load embedded resource 'ConsoleFX.Resources.borders.json'");
                                     }
 
-                                _borderStyle = borderManager.GetStyle(string.IsNullOrEmpty(borderStyle) ? "curved" : borderStyle);
+                                string resolvedBorderStyle = string.IsNullOrEmpty(borderStyle) ? "curved" : borderStyle!;
+                                _borderStyle = borderManager.GetStyle(resolvedBorderStyle);
                                 if (_borderStyle == null)
                                     {
                                         throw new InvalidOperationException($"Border style '{borderStyle ?? "curved"}' not found. Check if BorderManager.LoadJsonFromStream() properly deserialized the JSON.");
@@ -66,48 +81,122 @@ namespace ConsoleFX
                             }
                     }
 
+                private string ApplyDim(string? color)
+                    {
+                        if (!_isDimmed || string.IsNullOrEmpty(color)) return color ?? "";
+                        return $"{ConsoleFX.Format.Faint}{color}";
+                    }
+
                 public void SetColor(string? selectedItemColor = null, string? defaultColor = null, string? borderColor = null , string? titleColor = null)
                     {
                         if (!string.IsNullOrEmpty(selectedItemColor))
                             {
-                                SelectedItemColor = selectedItemColor;
+                                SelectedItemColor = ApplyDim(selectedItemColor);
                             }
                         if (!string.IsNullOrEmpty(defaultColor))
                             {
-                                DefaultColor = defaultColor;
+                                DefaultColor = ApplyDim(defaultColor);
                             }
                         if (!string.IsNullOrEmpty(borderColor))
                             {
-                                BorderColor = borderColor;
+                                BorderColor = ApplyDim(borderColor);
                             }
                         if (!string.IsNullOrEmpty(titleColor))
                             {
-                                TitleColor = titleColor;
+                                TitleColor = ApplyDim(titleColor);
                             }
                     }
 
                 public string Run()
                     {
+                        Encoding originalOutputEncoding = Console.OutputEncoding;
+                        Encoding originalInputEncoding = Console.InputEncoding;
+
+                        // Ensure box-drawing characters in border styles are encoded correctly.
+                        Console.OutputEncoding = new UTF8Encoding(false);
+                        Console.InputEncoding = new UTF8Encoding(false);
+
                         Console.CursorVisible = false;
 
                         _isRunning = true;
-                        Console.SetCursorPosition(0,0);
-                        Console.Clear();
+                        _wasCancelled = false;
+                        ClearFromStartRow();
+                        _lastWindowWidth = Console.WindowWidth;
+                        _lastWindowHeight = Console.WindowHeight;
+                        bool resizeWatcherInitialized = ConsoleResizeWatcher.Initialize();
 
-                        while (_isRunning)
+                        try
                             {
-                                Render();
-                                var key = Console.ReadKey(true).Key;
-                                HandleInput(key);
+                                RenderWithUnderlay();
+                                while (_isRunning)
+                                    {
+                                        if (resizeWatcherInitialized && ConsoleResizeWatcher.TryReadResizeEvent(100, out short cols, out short rows))
+                                            {
+                                                bool clearScreen = cols < _lastWindowWidth || rows < _lastWindowHeight;
+                                                _lastWindowWidth = cols;
+                                                _lastWindowHeight = rows;
+                                                RenderWithUnderlay(clearScreen);
+                                            }
+
+                                        if (Console.KeyAvailable)
+                                            {
+                                                var key = Console.ReadKey(true).Key;
+                                                HandleInput(key);
+                                                if (_isRunning)
+                                                    {
+                                                        RenderWithUnderlay();
+                                                    }
+                                            }
+                                    }
+                            }
+                        finally
+                            {
+                                if (resizeWatcherInitialized)
+                                    {
+                                        ConsoleResizeWatcher.Restore();
+                                    }
+                                Console.CursorVisible = true;
+                                Console.OutputEncoding = originalOutputEncoding;
+                                Console.InputEncoding = originalInputEncoding;
                             }
 
-                        Console.CursorVisible = true;
+                        if (_wasCancelled)
+                            {
+                                return string.Empty;
+                            }
+
                         return this._options[_selectedIndex];
                     }
 
-                private void Render()
+                private void ClearFromStartRow()
                     {
-                        int widthOffset = this._border ? 2 + (this._padding * 2) : 0;
+                        // Erase from cursor to end of display without touching lines above _startRow.
+                        Console.SetCursorPosition(0, _startRow);
+                        Console.Write(Erase.ToScreenEnd);
+                        Console.SetCursorPosition(0, _startRow);
+                    }
+
+                private void RenderWithUnderlay(bool clearScreen = false)
+                    {
+                        if (clearScreen)
+                            {
+                                ClearFromStartRow();
+                            }
+
+                        UnderlayMenu?.RenderBackground();
+                        Render();
+                    }
+
+                private void Render(bool clearScreen = false)
+                    {
+                        if (clearScreen)
+                            {
+                                ClearFromStartRow();
+                            }
+                        Console.SetCursorPosition(0, _startRow);
+
+                        int inset = (this._fullWidth && this._borderInset > 0) ? this._borderInset : 0;
+                        int widthOffset = this._border ? 2 + (this._padding * 2) + (inset * 2) : 0;
                         var grid = GridConverter.FromList(
                             this._options,
                             this._columns,
@@ -115,6 +204,7 @@ namespace ConsoleFX
                             fullWidth: this._fullWidth,
                             widthOffset: widthOffset
                         );
+                        _effectiveColumns = Math.Max(1, grid.Columns);
                         
                         // Apply DefaultStyle to all items
                         for (int i = 0; i < this._options.Count; i++)
@@ -130,8 +220,6 @@ namespace ConsoleFX
                         string originalText = _options[_selectedIndex];
                         grid.SetCellValue($"{ConsoleFX.Format.Italic}{ConsoleFX.Format.Bold}{SelectedItemColor}{originalText}{ConsoleFX.Format.Reset}{DefaultColor}", selectedRow, selectedColumn);
 
-                        Console.SetCursorPosition(0,0);
-
                         if (!this._border)
                             {
                                 grid.Render();
@@ -141,38 +229,102 @@ namespace ConsoleFX
                         string gridOutput     = grid.ToString();
                         string[] gridString   = gridOutput.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
 
-                        CharMatrix charMatrix = new CharMatrix(gridString, this._padding, this._fullWidth);
+                        bool charMatrixFullWidth = this._fullWidth && inset == 0;
+                        CharMatrix charMatrix = new CharMatrix(gridString, this._padding, charMatrixFullWidth);
 
                         charMatrix.SetBorder(this._borderStyle ?? throw new InvalidOperationException("Border style not initialized."), BorderColor);
-                        if (!string.IsNullOrEmpty(this._borderTitle))
+                        string? borderTitle = this._borderTitle;
+                        if (!string.IsNullOrEmpty(borderTitle))
                             {
-                                charMatrix.SetTitle(this._borderTitle, TitleColor);
+                                charMatrix.SetTitle(borderTitle!, TitleColor);
                             }
-                        Console.Write(charMatrix.Render());
+                        _lastRenderedOutput = inset > 0 ? charMatrix.Render(x: inset + 1) : charMatrix.Render();
+                        Console.Write(_lastRenderedOutput);
+                    }
+
+                public string? SaveScreenOutput()
+                    {
+                        return _lastRenderedOutput;
+                    }
+
+                public void SetSelectedIndex(int index)
+                    {
+                        if (_options.Count == 0)
+                            {
+                                _selectedIndex = 0;
+                                return;
+                            }
+
+                        _selectedIndex = Math.Max(0, Math.Min(index, _options.Count - 1));
+                    }
+
+                public void SetSelectedItem(string? item)
+                    {
+                        if (string.IsNullOrEmpty(item))
+                            {
+                                return;
+                            }
+
+                        int index = _options.IndexOf(item!);
+                        if (index >= 0)
+                            {
+                                _selectedIndex = index;
+                            }
+                    }
+
+                public void RestoreScreenOutput(string? output)
+                    {
+                        if (!string.IsNullOrEmpty(output))
+                            {
+                                Console.SetCursorPosition(0, _startRow);
+                                Console.Write(output);
+                            }
+                    }
+
+                public void RenderBackground()
+                    {
+                        Encoding originalOutputEncoding = Console.OutputEncoding;
+                        Encoding originalInputEncoding = Console.InputEncoding;
+
+                        Console.OutputEncoding = new UTF8Encoding(false);
+                        Console.InputEncoding = new UTF8Encoding(false);
+
+                        try
+                            {
+                                _lastWindowWidth = Console.WindowWidth;
+                                _lastWindowHeight = Console.WindowHeight;
+                                UnderlayMenu?.RenderBackground();
+                                Render();
+                            }
+                        finally
+                            {
+                                Console.OutputEncoding = originalOutputEncoding;
+                                Console.InputEncoding = originalInputEncoding;
+                            }
                     }
 
                 private void HandleInput(ConsoleKey key)
                     {
-                        int rows = (int)Math.Ceiling((double)_options.Count / _columns);
+                        int columns = Math.Max(1, _effectiveColumns);
                         switch (key)
                             {
                                 case ConsoleKey.UpArrow:
-                                    if (_selectedIndex >= _columns) _selectedIndex -= _columns;
+                                    if (_selectedIndex >= columns) _selectedIndex -= columns;
                                     break;
                                 case ConsoleKey.DownArrow:
-                                    if (_selectedIndex + _columns < _options.Count) _selectedIndex += _columns;
+                                    if (_selectedIndex + columns < _options.Count) _selectedIndex += columns;
                                     break;
                                 case ConsoleKey.LeftArrow:
-                                    if (_selectedIndex % _columns > 0) _selectedIndex--;
+                                    if (_selectedIndex % columns > 0) _selectedIndex--;
                                     break;
                                 case ConsoleKey.RightArrow:
-                                    if (_selectedIndex < _options.Count - 1) _selectedIndex++;
+                                    if ((_selectedIndex % columns) < (columns - 1) && _selectedIndex < _options.Count - 1) _selectedIndex++;
                                     break;
                                 case ConsoleKey.Enter:
                                     _isRunning = false;
                                     break;
                                 case ConsoleKey.Escape:
-                                    _selectedIndex = -1; // Indicate cancellation
+                                    _wasCancelled = true;
                                     _isRunning = false;
                                     break;
                             }

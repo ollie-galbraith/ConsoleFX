@@ -220,7 +220,8 @@ namespace ConsoleFX
                         int? effectiveX = null;
                         if (x.HasValue && !FullWidth)
                             {
-                                effectiveX = Math.Clamp(x.Value, 1, Console.BufferWidth - Width);
+                                int maxX = Math.Max(1, Console.BufferWidth - Width);
+                                effectiveX = Math.Min(Math.Max(x.Value, 1), maxX);
                             }
 
                         StringBuilder sb = new StringBuilder();

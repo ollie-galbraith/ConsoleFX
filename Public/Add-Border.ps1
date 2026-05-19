@@ -132,7 +132,7 @@ Function Add-Border
                 $BorderManager.LoadJson($BorderJson)
                 $Border = $BorderManager.GetStyle($BorderType)
 
-                [System.Collections.ArrayList]$BorderControlCodes = @()
+                # [System.Collections.ArrayList]$BorderControlCodes = @()
                 [System.Collections.ArrayList]$TextControlCodes = @()
                 [System.Collections.ArrayList]$TitleControlCodes = @()
 

@@ -4,7 +4,10 @@ namespace ConsoleFX
             {
                 public static GridManager FromList(List<string> items, int targetColumns, int defaultGap = 2, bool fullWidth = false, int widthOffset = 0)
                     {
-                        if (items == null || items.Count == 0) return new GridManager(0,0, defaultGap, fullWidth, widthOffset);
+                        if (items == null || items.Count == 0)
+                            {
+                                return new GridManager(0, 1, defaultGap, fullWidth, widthOffset);
+                            }
 
                         int maxWidth = Console.WindowWidth;
                         int currentColumns = targetColumns;
@@ -26,7 +29,15 @@ namespace ConsoleFX
                                 currentColumns--;
                             }
 
-                        return new GridManager(0,0, defaultGap, fullWidth, widthOffset);
+                        // Fallback for very narrow terminals: force a single-column layout.
+                        int fallbackRows = items.Count;
+                        var fallbackGrid = new GridManager(fallbackRows, 1, defaultGap, fullWidth, widthOffset);
+                        for (int i = 0; i < items.Count; i++)
+                            {
+                                fallbackGrid.SetCellValue(items[i], i, 0);
+                            }
+
+                        return fallbackGrid;
                     }
 
                 public static GridManager FromTable(List<List<string>> tableData, int defaultGap = 2)
@@ -80,7 +91,7 @@ namespace ConsoleFX
                                     }
                             }
 
-                        int totalWidth = gridContentWidth + (grid.Padding * 2);
+                        int totalWidth = gridContentWidth + (grid.Padding * 2) + grid.WidthOffset;
                         return totalWidth <= maxWidth;
                     }
             }

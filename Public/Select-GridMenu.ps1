@@ -20,7 +20,7 @@ Function Select-GridMenu
             [Parameter(Mandatory=$True, HelpMessage='An array of strings to display as menu items')]
             [String[]]$Items,
             [Parameter(Mandatory=$False, HelpMessage='The number of columns to display. Will automatically adjust based on console width if too many specified')]
-            [int]$Columns,
+            [int]$Columns = 3,
             [Parameter(Mandatory=$False, HelpMessage='Renders the menu with a border')]
             [switch]$Border,
             [Parameter(Mandatory=$False, HelpMessage='Color for the text. Can be a ConsoleFX.Colors enum value, a ConsoleFX.ColorModel object, a 256-bit color integer (0-255), or an RGB array of three integers (0-255)')]
@@ -38,7 +38,17 @@ Function Select-GridMenu
             })]
             [object]$SelectionColor = 'Magenta',
             [Parameter(Mandatory=$false, HelpMessage='Whether to expand the menu to the full width of the console')]
-            [Bool]$FullWidth = $True
+            [Bool]$FullWidth = $True,
+            [Parameter(Mandatory=$false, HelpMessage='The row (0-based) at which the grid is rendered')]
+            [int]$StartRow = 0,
+            [Parameter(Mandatory=$false, HelpMessage='Horizontal inset (chars) from each edge when FullWidth is true, keeping the border centered')]
+            [int]$BorderInset = 0,
+            [Parameter(Mandatory=$false, HelpMessage='Render the menu dimmed (for use as background when layering menus).')]
+            [switch]$IsDimmed,
+            [Parameter(Mandatory=$false, HelpMessage='A previously-returned dimmed GridMenu to render as background underlay behind this menu.')]
+            [object]$UnderlayGridMenu,
+            [Parameter(Mandatory=$false, HelpMessage='Return a PSCustomObject { Result; Menu } where Menu is a dimmed copy for chaining as underlay to the next menu.')]
+            [switch]$PassThru
         )
 
         DynamicParam
@@ -157,16 +167,43 @@ Function Select-GridMenu
 
         End
             {
-                $Menu = [ConsoleFX.GridMenu]::New($Items, $Columns, 1, $FullWidth, $Border, $BorderType, $Title)
+                [Console]::Write([ConsoleFX.Cursor]::HomePosition)
+                [Console]::Write([ConsoleFX.Erase]::ToScreenEnd)
+                $Menu = [ConsoleFX.GridMenu]::New($Items, $Columns, 1, $FullWidth, $Border, $BorderType, $Title, $StartRow, $BorderInset, $IsDimmed)
                 $Menu.SetColor(
                     $ResolvedSelectionColor,
                     $ResolvedTextColor,
                     $ResolvedBorderColor,
                     $ResolvedTitleColor
                 )
+                If($UnderlayGridMenu)
+                    {
+                        $Menu.UnderlayMenu = $UnderlayGridMenu
+                    }
+
                 $SelectedItem = $Menu.Run()
 
                 [ConsoleFX.Cursor]::Visible
+
+                If($PassThru)
+                    {
+                        $DimmedMenu = [ConsoleFX.GridMenu]::New($Items, $Columns, 1, $FullWidth, $Border, $BorderType, $Title, $StartRow, $BorderInset, $true)
+                        $DimmedMenu.SetColor(
+                            $ResolvedSelectionColor,
+                            $ResolvedTextColor,
+                            $ResolvedBorderColor,
+                            $ResolvedTitleColor
+                        )
+                        If($UnderlayGridMenu)
+                            {
+                                $DimmedMenu.UnderlayMenu = $UnderlayGridMenu
+                            }
+                        Return [PSCustomObject]@{
+                            Result = $SelectedItem
+                            Menu   = $DimmedMenu
+                        }
+                    }
+
                 Return $SelectedItem
             }
     }

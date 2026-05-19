@@ -17,13 +17,14 @@ namespace ConsoleFX
                 private readonly int _widthOffset;
                 public int Padding { get; set; }
                 public bool FullWidth { get; set; }
+                public int WidthOffset => _widthOffset;
                 public int Rows => _strings.GetLength(0);
                 public int Columns => _strings.GetLength(1);
 
                 public GridManager(int rows, int columns, int defaultGap = 1, bool fullWidth = false, int widthOffset = 0)
                     {
                         _strings = new string[rows, columns];
-                        _spacing = new int[rows, columns - 1];
+                        _spacing = new int[rows, Math.Max(0, columns - 1)];
                         _cachedWidths = new int[columns];
                         _visualLengths = new int[rows, columns];
                         _defaultGap = defaultGap;
