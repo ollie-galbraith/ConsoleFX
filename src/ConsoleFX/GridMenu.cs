@@ -116,7 +116,7 @@ namespace ConsoleFX
                         Console.OutputEncoding = new UTF8Encoding(false);
                         Console.InputEncoding = new UTF8Encoding(false);
 
-                        Console.CursorVisible = false;
+                        Console.Write(Cursor.Invisible);
 
                         _isRunning = true;
                         _wasCancelled = false;
@@ -155,7 +155,7 @@ namespace ConsoleFX
                                     {
                                         ConsoleResizeWatcher.Restore();
                                     }
-                                Console.CursorVisible = true;
+                                Console.Write(Cursor.Visible);
                                 Console.OutputEncoding = originalOutputEncoding;
                                 Console.InputEncoding = originalInputEncoding;
                             }

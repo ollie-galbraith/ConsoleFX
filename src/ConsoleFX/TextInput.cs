@@ -118,11 +118,10 @@ namespace ConsoleFX
                     {
                         Encoding originalOutputEncoding = Console.OutputEncoding;
                         Encoding originalInputEncoding = Console.InputEncoding;
-                        bool originalCursorVisible = Console.CursorVisible;
 
                         Console.OutputEncoding = new UTF8Encoding(false);
                         Console.InputEncoding = new UTF8Encoding(false);
-                        Console.CursorVisible = true;
+                        Console.Write(Cursor.Visible);
 
                         _value = initialValue ?? string.Empty;
                         _isRunning = true;
@@ -166,7 +165,7 @@ namespace ConsoleFX
 
                                 Console.OutputEncoding = originalOutputEncoding;
                                 Console.InputEncoding = originalInputEncoding;
-                                Console.CursorVisible = originalCursorVisible;
+                                Console.Write(Cursor.Invisible);
                             }
 
                         MoveToNextLine();

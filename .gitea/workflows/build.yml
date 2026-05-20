@@ -1,0 +1,60 @@
+name: Build ConsoleFX
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/ConsoleFX/**'
+      - '.gitea/workflows/build.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/ConsoleFX/**'
+      - '.gitea/workflows/build.yml'
+
+jobs:
+  build-windows:
+    name: Build on Windows (net48 + net6.0)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '6.0.x'
+
+      - name: Clear NuGet cache
+        run: dotnet nuget locals all --clear
+
+      - name: Restore dependencies
+        run: dotnet restore src/ConsoleFX/ConsoleFX.csproj
+
+      - name: Build
+        run: dotnet build src/ConsoleFX/ConsoleFX.csproj -c Release --no-restore
+
+      - name: Configure git
+        run: |
+          git config --local user.email "gitea-actions@localhost"
+          git config --local user.name "Gitea Actions"
+
+      - name: Commit and push DLLs
+        run: |
+          git add lib/net48/ lib/net6.0/
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update ConsoleFX DLLs from build [skip ci]"
+            git push
+          fi
+        env:
+          GITEA_TOKEN: ${{ secrets.GITEA_TOKEN }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ConsoleFX-windows-release
+          path: src/ConsoleFX/bin/Release/
