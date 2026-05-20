@@ -51,7 +51,7 @@ jobs:
             git push
           fi
         env:
-          GITEA_TOKEN: ${{ secrets.GITEA_TOKEN }}
+          GITEA_TOKEN: ${{ secrets.GIT_TOKEN }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
