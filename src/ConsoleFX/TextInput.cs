@@ -211,8 +211,8 @@ namespace ConsoleFX
 
                 private void ClearFromStartPosition()
                     {
-                        int safeColumn = Math.Min(Math.Max(_startColumn, 0), Math.Max(Console.BufferWidth - 1, 0));
-                        int safeRow = Math.Min(Math.Max(_startRow, 0), Math.Max(Console.BufferHeight - 1, 0));
+                        int safeColumn = Math.Min(Math.Max(_startColumn, 0), Math.Max(Console.WindowWidth - 1, 0));
+                        int safeRow = Math.Min(Math.Max(_startRow, 0), Math.Max(Console.WindowHeight - 1, 0));
                         Console.SetCursorPosition(safeColumn, safeRow);
                         Console.Write(Erase.ToScreenEnd);
                         Console.SetCursorPosition(safeColumn, safeRow);
@@ -260,7 +260,7 @@ namespace ConsoleFX
                                 return Math.Max(Math.Max(_prompt.Length, _value.Length), 1);
                             }
 
-                        int width = Console.BufferWidth - leftOffset - (_border ? (2 + (_padding * 2)) : 0);
+                        int width = Console.WindowWidth - leftOffset - (_border ? (2 + (_padding * 2)) : 0);
                         return Math.Max(width, 1);
                     }
 
@@ -343,7 +343,7 @@ namespace ConsoleFX
                                 charMatrix.SetTitle(_borderTitle!, TitleColor);
                             }
 
-                        Console.SetCursorPosition(Math.Min(Math.Max(_startColumn, 0), Math.Max(Console.BufferWidth - 1, 0)), Math.Min(Math.Max(_startRow, 0), Math.Max(Console.BufferHeight - 1, 0)));
+                        Console.SetCursorPosition(Math.Min(Math.Max(_startColumn, 0), Math.Max(Console.WindowWidth - 1, 0)), Math.Min(Math.Max(_startRow, 0), Math.Max(Console.WindowHeight - 1, 0)));
                         Console.Write(leftOffset > 0 ? charMatrix.Render(x: leftOffset + 1) : charMatrix.Render());
 
                         int promptOffset = _promptInline ? rawPromptLength : 0;
@@ -354,9 +354,9 @@ namespace ConsoleFX
 
                 private void RenderUnbordered(string promptDisplay, string visibleInput, int leftOffset, int rawPromptLength, int rawInputLength)
                     {
-                        int safeColumn = Math.Min(Math.Max(leftOffset, 0), Math.Max(Console.BufferWidth - 1, 0));
-                        int promptRow = Math.Min(Math.Max(_startRow, 0), Math.Max(Console.BufferHeight - 1, 0));
-                        int inputRow = Math.Min(Math.Max(_startRow + (_promptInline ? 0 : 1), 0), Math.Max(Console.BufferHeight - 1, 0));
+                        int safeColumn = Math.Min(Math.Max(leftOffset, 0), Math.Max(Console.WindowWidth - 1, 0));
+                        int promptRow = Math.Min(Math.Max(_startRow, 0), Math.Max(Console.WindowHeight - 1, 0));
+                        int inputRow = Math.Min(Math.Max(_startRow + (_promptInline ? 0 : 1), 0), Math.Max(Console.WindowHeight - 1, 0));
 
                         Console.SetCursorPosition(safeColumn, promptRow);
                         if (_promptInline)
@@ -375,8 +375,8 @@ namespace ConsoleFX
 
                 private void PositionCursor(int column, int row)
                     {
-                        int safeColumn = Math.Min(Math.Max(column, 0), Math.Max(Console.BufferWidth - 1, 0));
-                        int safeRow = Math.Min(Math.Max(row, 0), Math.Max(Console.BufferHeight - 1, 0));
+                        int safeColumn = Math.Min(Math.Max(column, 0), Math.Max(Console.WindowWidth - 1, 0));
+                        int safeRow = Math.Min(Math.Max(row, 0), Math.Max(Console.WindowHeight - 1, 0));
                         Console.Write(Cursor.JumpTo(safeRow + 1, safeColumn + 1));
                         Console.SetCursorPosition(safeColumn, safeRow);
                     }
