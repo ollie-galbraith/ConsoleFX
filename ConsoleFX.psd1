@@ -12,10 +12,13 @@
 RootModule = 'ConsoleFX.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0.0.1'
+ModuleVersion = '1.0.0.4'
 
 # Supported PSEditions
-# CompatiblePSEditions = @()
+CompatiblePSEditions = @(
+    'Desktop',
+    'Core'
+)
 
 # ID used to uniquely identify this module
 GUID = 'a5f0bd73-c07a-4e8c-8e5f-ff4b4828d65c'
@@ -24,16 +27,16 @@ GUID = 'a5f0bd73-c07a-4e8c-8e5f-ff4b4828d65c'
 Author = 'Oliver Galbraith'
 
 # Company or vendor of this module
-CompanyName = 'Unknown'
+CompanyName = 'Oliver Galbraith'
 
 # Copyright statement for this module
 Copyright = '(c) Oliver Galbraith. All rights reserved.'
 
 # Description of the functionality provided by this module
-Description = 'Something'
+Description = 'ConsoleFX is a PowerShell module that provides a collection of functions to create visually appealing console applications. It includes features such as spinners, progress bars, and customizable borders to enhance the user experience in the terminal.'
 
 # Minimum version of the PowerShell engine required by this module
-# PowerShellVersion = ''
+PowerShellVersion = '5.1'
 
 # Name of the PowerShell host required by this module
 # PowerShellHostName = ''
@@ -42,7 +45,7 @@ Description = 'Something'
 # PowerShellHostVersion = ''
 
 # Minimum version of Microsoft .NET Framework required by this module. This prerequisite is valid for the PowerShell Desktop edition only.
-# DotNetFrameworkVersion = ''
+DotNetFrameworkVersion = '4.8'
 
 # Minimum version of the common language runtime (CLR) required by this module. This prerequisite is valid for the PowerShell Desktop edition only.
 # ClrVersion = ''
@@ -54,9 +57,7 @@ Description = 'Something'
 # RequiredModules = @()
 
 # Assemblies that must be loaded prior to importing this module
-# RequiredAssemblies = @(
-#     './dist/ConsoleFX/ConsoleFX.dll'
-# )
+# RequiredAssemblies = @()
 
 # Script files (.ps1) that are run in the caller's environment prior to importing this module.
 # ScriptsToProcess = @()
@@ -90,29 +91,49 @@ AliasesToExport = '*'
 
 # List of all files packaged with this module
 FileList = @(
+    ".\ConsoleFX.psd1",
+    ".\ConsoleFX.psm1",
     ".\lib\spinners.json",
-    ".\lib\borders.json"
+    ".\lib\borders.json",
+    ".\lib\net48\ConsoleFX.dll",
+    ".\lib\net48\Newtonsoft.Json.dll",
+    ".\lib\net48\System.Management.Automation.dll",
+    ".\lib\net6.0\ConsoleFX.dll",
+    ".\Public\Add-Border.ps1",
+    ".\Public\Read-TextInput.ps1",
+    ".\Public\Select-GridMenu.ps1",
+    ".\Public\Show-LayeredGridMenu.ps1",
+    ".\Private\Add-DynamicParameter.ps1",
+    ".\Private\ConvertTo-Case.ps1",
+    ".\Private\Resolve-ColorCode.ps1",
+    ".\Private\Split-LongString.ps1"
 )
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
 PrivateData = @{
-
     PSData = @{
-
         # Tags applied to this module. These help with module discovery in online galleries.
-        # Tags = @()
+        Tags = @(
+            'console',
+            'spinner',
+            'progress-bar',
+            'border',
+            'terminal',
+            'cli',
+            'command-line-interface'
+        )
 
         # A URL to the license for this module.
-        # LicenseUri = ''
+        LicenseUri = 'https://github.com/olivergalbraith/ConsoleFX/blob/main/LICENSE'
 
         # A URL to the main website for this project.
-        # ProjectUri = ''
+        ProjectUri = 'https://github.com/olivergalbraith/ConsoleFX'
 
         # A URL to an icon representing this module.
         # IconUri = ''
 
         # ReleaseNotes of this module
-        # ReleaseNotes = ''
+        ReleaseNotes = 'Initial release of ConsoleFX v1.0.0.1'
 
         # Prerelease string of this module
         # Prerelease = ''

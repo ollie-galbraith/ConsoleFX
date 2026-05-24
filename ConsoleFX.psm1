@@ -22,4 +22,3 @@ ForEach($File in $DotSourceMembers)
     }
 
 Export-ModuleMember -Function $PublicMembers
-

@@ -59,8 +59,9 @@ namespace ConsoleFX
             // 4. Handle String (Enum check)
             if (arguments is string stringValue)
             {
-                // Using Enum.IsDefined is cleaner than getting all names and checking contains
-                if (!Enum.IsDefined(typeof(ConsoleFX.Color), stringValue))
+                stringValue = stringValue.Trim();
+                // Using Enum.TryParse with ignoreCase = true to allow for case-insensitive matching
+                if (!Enum.TryParse<ConsoleFX.Color>(stringValue, true, out _))
                 {
                     throw new ValidationMetadataException($"'{stringValue}' is not a valid [ConsoleFX.Color] color.");
                 }
