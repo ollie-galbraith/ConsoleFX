@@ -40,7 +40,7 @@ Function Read-TextInput
                     DynamicParameterDictionary = $DynamicParameterDictionary
                 }
 
-                $BorderJson = Get-Content -Path $MyInvocation.MyCommand.Module.FileList[1] -Raw -Encoding UTF8
+                $BorderJson = Get-Content -Path ($MyInvocation.MyCommand.Module.FileList | Where-Object { $_ -like "*borders.json" } | Select-Object -First 1) -Raw -Encoding UTF8
                 $ColorArguementCompleter = {
                     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
                     [enum]::GetValues([ConsoleFX.Color]) | Where-Object {$_ -like "$wordToComplete*"} | ForEach-Object {$_}
@@ -112,9 +112,9 @@ Function Read-TextInput
                 $ResolvedBorderColor = if ($BorderColor) { Resolve-ColorCode -ColorCode $BorderColor -ColorLocation 'Foreground' } else { $null }
                 $ResolvedTitleColor = if ($TitleColor) { Resolve-ColorCode -ColorCode $TitleColor -ColorLocation 'Foreground' } else { $null }
 
-                $Input = [ConsoleFX.TextInput]::New($Prompt, $Padding, $FullWidth, $Border, $BorderType, $Title, $StartRow, 0, $BorderInset, $PromptInline, $AsSecureString)
-                $Input.SetColor($ResolvedPromptColor, $ResolvedTextColor, $ResolvedBorderColor, $ResolvedTitleColor)
-                $Result = $Input.Run($InitialValue)
+                $TextInput = [ConsoleFX.TextInput]::New($Prompt, $Padding, $FullWidth, $Border, $BorderType, $Title, $StartRow, 0, $BorderInset, $PromptInline, $AsSecureString)
+                $TextInput.SetColor($ResolvedPromptColor, $ResolvedTextColor, $ResolvedBorderColor, $ResolvedTitleColor)
+                $Result = $TextInput.Run($InitialValue)
 
                 if ($VariableName)
                     {

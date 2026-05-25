@@ -59,7 +59,7 @@ Function Select-GridMenu
                     DynamicParameterDictionary = $DynamicParameterDictionary
                 }
 
-                $BorderJson = Get-Content -Path $MyInvocation.MyCommand.Module.FileList[1] -Raw -Encoding UTF8
+                $BorderJson = Get-Content -Path ($MyInvocation.MyCommand.Module.FileList | Where-Object { $_ -like "*borders.json" } | Select-Object -First 1) -Raw -Encoding UTF8
 
                 $ColorArguementCompleter = {
                     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
