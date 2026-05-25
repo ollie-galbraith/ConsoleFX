@@ -39,15 +39,15 @@ Function Resolve-ColorCode
 
                 Return $RBGCode
             }
-        ElseIf($ConsoleFXColorModels -contains $ColorCode.GetType())
+        ElseIf($ConsoleFXColorModels -contains $ColorCode.GetType().Name)
             {
                 If($ColorCode -isnot [ConsoleFx.ColorModel.RGB])
                     {
                         $Type = $ColorCode.GetType().Name
                         $ColorConversionParams = @{
                             To = 'RGB'
+                            ColorCode = $ColorCode
                         }
-                        $ColorConversionParams[$Type] = $ColorCode
                         $ColorCode = Convert-Color @ColorConversionParams
                     }
 

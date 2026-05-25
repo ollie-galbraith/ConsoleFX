@@ -132,7 +132,6 @@ Function Add-Border
                 $BorderManager.LoadJson($BorderJson)
                 $Border = $BorderManager.GetStyle($BorderType)
 
-                # [System.Collections.ArrayList]$BorderControlCodes = @()
                 [System.Collections.ArrayList]$TextControlCodes = @()
                 [System.Collections.ArrayList]$TitleControlCodes = @()
 
@@ -159,6 +158,7 @@ Function Add-Border
                 If($BorderColor)
                     {
                         $BorderAnsiCode = Resolve-ColorCode -ColorCode $BorderColor -ColorLocation 'Foreground'
+                        Write-Verbose "Resolved border color: $BorderAnsiCode"
                     }
 
                 $CharMatrix.SetBorder($Border, $BorderAnsiCode)
