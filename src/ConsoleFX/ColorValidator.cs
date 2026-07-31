@@ -2,9 +2,8 @@ using System;
 using System.Collections;
 using System.Linq;
 using System.Management.Automation;
-
 // Assuming these exist in your project based on your snippet
-using ConsoleFX.ColorModel; 
+using ConsoleFX.ColorModel;
 
 namespace ConsoleFX
 {
@@ -23,7 +22,9 @@ namespace ConsoleFX
             {
                 if (intValue < 0 || intValue > 255)
                 {
-                    throw new ValidationMetadataException($"{intValue} is not a valid color integer (0-255).");
+                    throw new ValidationMetadataException(
+                        $"{intValue} is not a valid color integer (0-255)."
+                    );
                 }
                 return;
             }
@@ -36,7 +37,9 @@ namespace ConsoleFX
 
                 if (array.Length != 3)
                 {
-                    throw new ValidationMetadataException($"Color array must have exactly 3 values (RGB). You provided {array.Length}.");
+                    throw new ValidationMetadataException(
+                        $"Color array must have exactly 3 values (RGB). You provided {array.Length}."
+                    );
                 }
 
                 foreach (object item in array)
@@ -45,7 +48,9 @@ namespace ConsoleFX
                     {
                         if (rgbValue < 0 || rgbValue > 255)
                         {
-                            throw new ValidationMetadataException($"RGB value '{rgbValue}' is out of range (0-255).");
+                            throw new ValidationMetadataException(
+                                $"RGB value '{rgbValue}' is out of range (0-255)."
+                            );
                         }
                     }
                     else
@@ -63,7 +68,9 @@ namespace ConsoleFX
                 // Using Enum.TryParse with ignoreCase = true to allow for case-insensitive matching
                 if (!Enum.TryParse<ConsoleFX.Color>(stringValue, true, out _))
                 {
-                    throw new ValidationMetadataException($"'{stringValue}' is not a valid [ConsoleFX.Color] color.");
+                    throw new ValidationMetadataException(
+                        $"'{stringValue}' is not a valid [ConsoleFX.Color] color."
+                    );
                 }
                 return;
             }
@@ -75,17 +82,21 @@ namespace ConsoleFX
             }
 
             // 6. Handle Specific Color Models
-            if (arguments is RGB || 
-                arguments is Hex || 
-                arguments is HSV || 
-                arguments is HSL || 
-                arguments is CMYK)
+            if (
+                arguments is RGB
+                || arguments is Hex
+                || arguments is HSV
+                || arguments is HSL
+                || arguments is CMYK
+            )
             {
                 return;
             }
 
             // 6. Fallback Error
-            throw new ValidationMetadataException("Invalid color type. Must be a valid Color Model (RGB, Hex, etc), a single int (0-255), an RGB int array, or a valid ConsoleFX.Colors string.");
+            throw new ValidationMetadataException(
+                "Invalid color type. Must be a valid Color Model (RGB, Hex, etc), a single int (0-255), an RGB int array, or a valid ConsoleFX.Colors string."
+            );
         }
     }
 }
