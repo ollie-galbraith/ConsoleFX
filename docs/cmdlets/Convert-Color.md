@@ -18,14 +18,15 @@ Convert-Color
 ---
 
 ### Source Code
-[Convert-Color.ps1](../Public/Convert-Color.ps1)
+[Convert-Color.ps1](../../Public/Convert-Color.ps1)
 
 ### Examples
 
 #### Example 1
 ```powershell
 Convert-Color -ColorCode $Color -To 'RGB'
-```
+```
+
 
 ---
 

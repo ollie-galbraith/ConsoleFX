@@ -19,14 +19,15 @@ Split-LongString
 ---
 
 ### Source Code
-[Split-LongString.ps1](../../Private/Split-LongString.ps1)
+[Split-LongString.ps1](../../../Private/Split-LongString.ps1)
 
 ### Examples
 
 #### Example 1
 ```powershell
 Split-LongString -Text $LongString -Width 80 -Padding 4
-```
+```
+
 
 ---
 

@@ -19,7 +19,7 @@ ConvertTo-Case
 ---
 
 ### Source Code
-[ConvertTo-Case.ps1](../../Private/ConvertTo-Case.ps1)
+[ConvertTo-Case.ps1](../../../Private/ConvertTo-Case.ps1)
 
 ### Examples
 
@@ -37,7 +37,8 @@ cascal-to-kebab-case
 ```powershell
 PS C:\> ConvertTo-Case -InputString 'snake_to_pascal_case' -From Snake -To Pascal
 SnakeToPascalCase
-```
+```
+
 
 ---
 

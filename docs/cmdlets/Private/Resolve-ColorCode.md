@@ -19,7 +19,7 @@ Resolve-ColorCode
 ---
 
 ### Source Code
-[Resolve-ColorCode.ps1](../../Private/Resolve-ColorCode.ps1)
+[Resolve-ColorCode.ps1](../../../Private/Resolve-ColorCode.ps1)
 
 ### Examples
 
@@ -30,7 +30,8 @@ Resolve-ColorCode -ColorCode 'Red' -ColorLocation 'Foreground'
 #### Example 2
 ```powershell
 Resolve-ColorCode -ColorCode 'Magenta' -ColorLocation 'Background' -Vivid
-```
+```
+
 
 ---
 

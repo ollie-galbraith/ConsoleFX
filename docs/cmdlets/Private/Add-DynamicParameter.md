@@ -31,7 +31,7 @@ Add-DynamicParameter
 ---
 
 ### Source Code
-[Add-DynamicParameter.ps1](../../Private/Add-DynamicParameter.ps1)
+[Add-DynamicParameter.ps1](../../../Private/Add-DynamicParameter.ps1)
 
 ### Examples
 
@@ -39,7 +39,8 @@ Add-DynamicParameter
 ```powershell
 # Add a dynamic parameter named "ExampleParam" of type string
 Add-DynamicParameter -DynamicParameterDictionary $DynamicParameters -ParameterName "ExampleParam" -ParameterType [string]
-```
+```
+
 
 ---
 

@@ -29,7 +29,7 @@ Add-Border
 ---
 
 ### Source Code
-[Add-Border.ps1](../Public/Add-Border.ps1)
+[Add-Border.ps1](../../Public/Add-Border.ps1)
 
 ### Examples
 
@@ -91,7 +91,8 @@ PS C:\> $FormattedString | Add-Border -Title "Formatted Strings"
 │     - list_item1                          │
 │     - list_item2                          │
 ╰───────────────────────────────────────────╯
-```
+```
+
 
 ---
 

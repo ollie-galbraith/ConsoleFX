@@ -27,7 +27,7 @@ Select-GridMenu
 ---
 
 ### Source Code
-[Select-GridMenu.ps1](../Public/Select-GridMenu.ps1)
+[Select-GridMenu.ps1](../../Public/Select-GridMenu.ps1)
 
 ### Examples
 
@@ -44,7 +44,8 @@ Write-Host "You selected: $selectedFruit"
 $colors = @('Red', 'Green', 'Blue', 'Yellow', 'Cyan', 'Magenta')
 $selectedColor = Select-GridMenu -Items $colors -Columns 3 -TextColor 'White' -SelectionColor 'Black' -BorderColor 'Gray' -TitleColor 'Cyan' -Title "Select a Color"
 Write-Host "You selected: $selectedColor"
-```
+```
+
 
 ---
 

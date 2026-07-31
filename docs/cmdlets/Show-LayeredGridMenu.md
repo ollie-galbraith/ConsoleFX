@@ -20,7 +20,7 @@ Show-LayeredGridMenu
 ---
 
 ### Source Code
-[Show-LayeredGridMenu.ps1](../Public/Show-LayeredGridMenu.ps1)
+[Show-LayeredGridMenu.ps1](../../Public/Show-LayeredGridMenu.ps1)
 
 ### Examples
 
@@ -46,7 +46,8 @@ $MenuItems = @(
 )
 
 Show-LayeredGridMenu -MenuItems $MenuItems
-```
+```
+
 
 ---
 

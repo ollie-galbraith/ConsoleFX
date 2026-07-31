@@ -29,7 +29,7 @@ Read-TextInput
 ---
 
 ### Source Code
-[Read-TextInput.ps1](../Public/Read-TextInput.ps1)
+[Read-TextInput.ps1](../../Public/Read-TextInput.ps1)
 
 ### Examples
 
@@ -44,7 +44,8 @@ Read-TextInput -Prompt 'Enter your password:' -AsSecureString -VariableName 'Pas
 #### Example 3
 ```powershell
 Read-TextInput -Prompt 'Enter your email:' -Border -Title 'User Information' -TitleColor 'Yellow' -BorderColor 'Green'
-```
+```
+
 
 ---
 
