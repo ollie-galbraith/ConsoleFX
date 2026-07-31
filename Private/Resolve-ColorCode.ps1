@@ -1,14 +1,23 @@
 Function Resolve-ColorCode
     {
+        <#
+        .SYNOPSIS
+        Resolves a color code to a ConsoleFX color object for use in foreground or background coloring.
+        .EXAMPLE
+        Resolve-ColorCode -ColorCode 'Red' -ColorLocation 'Foreground'
+        .EXAMPLE
+        Resolve-ColorCode -ColorCode 'Magenta' -ColorLocation 'Background' -Vivid
+        #>
+
         [CmdletBinding()]
         param(
-            [Parameter(Mandatory=$True)]
+            [Parameter(Mandatory=$True, Position = 0, HelpMessage = 'The color code to resolve.')]
             [ConsoleFX.ValidateColor()]
             [Object]$ColorCode,
-            [Parameter(Mandatory=$True)]
+            [Parameter(Mandatory=$True, Position = 1, HelpMessage = 'The location of the color (foreground or background).')]
             [ValidateSet('Foreground', 'Background')]
             [String]$ColorLocation,
-            [Parameter(Mandatory=$False)]
+            [Parameter(Mandatory=$False, Position = 2, HelpMessage = 'Specifies if the color should be vivid.')]
             [Switch]$Vivid
         )
 

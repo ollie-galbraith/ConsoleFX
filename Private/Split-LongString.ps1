@@ -1,12 +1,19 @@
 Function Split-LongString
     {
+        <#
+        .SYNOPSIS
+        Splits a long string into multiple lines based on the specified width and padding.
+        .EXAMPLE
+        Split-LongString -Text $LongString -Width 80 -Padding 4
+        #>
+        
         [CmdletBinding()]
         param(
-            [Parameter(Mandatory=$true, ValueFromPipeline=$True)]
+            [Parameter(Mandatory=$true, ValueFromPipeline=$True, Position = 0, HelpMessage = 'The long string to split into multiple lines.')]
             [string]$Text,
-            [Parameter(Mandatory=$False)]
+            [Parameter(Mandatory=$False, Position = 1, HelpMessage = 'The maximum width of each line.')]
             [int]$Width = [Console]::WindowWidth,
-            [Parameter(Mandatory=$False)]
+            [Parameter(Mandatory=$False, Position = 2, HelpMessage = 'The number of padding spaces to subtract from the width.')]
             [int]$Padding = 4
         )
 

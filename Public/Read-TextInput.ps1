@@ -1,5 +1,16 @@
 Function Read-TextInput
     {
+        <#
+        .SYNOPSIS
+        Reads text input from the user with various customization options.
+        .EXAMPLE
+        Read-TextInput -Prompt 'Enter your name:' -VariableName 'UserName'
+        .EXAMPLE
+        Read-TextInput -Prompt 'Enter your password:' -AsSecureString -VariableName 'Password'
+        .EXAMPLE
+        Read-TextInput -Prompt 'Enter your email:' -Border -Title 'User Information' -TitleColor 'Yellow' -BorderColor 'Green'
+        #>
+        
         [CmdletBinding()]
         param(
             [Parameter(Mandatory=$true, HelpMessage='Prompt text shown above the input field')]

@@ -32,7 +32,7 @@ Function Show-LayeredGridMenu
 
         [CmdletBinding()]
         param(
-            [Parameter(Mandatory=$True)]
+            [Parameter(Mandatory=$True, Position = 0, HelpMessage = 'An array of menu definition objects. Each object should contain properties for Title, Items, StartRow, BorderInset, and Border.')]
             [Object[]]$MenuItems
         )
 

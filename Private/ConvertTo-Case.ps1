@@ -16,12 +16,12 @@ Function ConvertTo-Case
         
         [CmdletBinding()]
         param(
-            [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+            [Parameter(Mandatory=$true, ValueFromPipeline=$true, Position = 0, HelpMessage = 'The string to convert from one casing type to another.')]
             [string]$InputString,
-            [Parameter(Mandatory=$true)]
+            [Parameter(Mandatory=$true, Position = 1, HelpMessage = 'The casing type of the input string.')]
             [ValidateSet('Pascal', 'Camel', 'Snake', 'Kebab')]
             [String]$From,
-            [Parameter(Mandatory=$true)]
+            [Parameter(Mandatory=$true, Position = 2, HelpMessage = 'The casing type to convert the input string to.')]
             [ValidateSet('Pascal', 'Camel', 'Snake', 'Kebab')]
             [String]$To
         )

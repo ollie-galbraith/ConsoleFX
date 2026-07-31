@@ -1,11 +1,18 @@
 Function Convert-Color
     {
+        <#
+        .SYNOPSIS
+        Converts a color code to a different color model.
+        .EXAMPLE
+        Convert-Color -ColorCode $Color -To 'RGB'
+        #>
+        
         [CmdletBinding()]
         param(
-            [Parameter(Mandatory=$True)]
+            [Parameter(Mandatory=$True, Position = 0, HelpMessage = 'The color code to convert.')]
             [ConsoleFX.ValidateColor()]
             [Object]$ColorCode,
-            [Parameter(Mandatory=$True)]
+            [Parameter(Mandatory=$True, Position = 1, HelpMessage = 'The color model to convert the color code to.')]
             [ValidateSet('RGB', 'Hex', 'HSV', 'HSL', 'CMYK')]
             [String]$To
         )
