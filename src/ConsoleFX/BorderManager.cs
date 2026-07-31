@@ -28,11 +28,7 @@ namespace ConsoleFX
                 private Dictionary<string, BorderStyle>? _styles;
                 public void LoadJson(string json)
                     {
-                        _styles = JsonConvert.DeserializeObject<Dictionary<string, BorderStyle>>(json);
-                        if (_styles == null)
-                            {
-                                throw new InvalidOperationException("Failed to deserialize border styles from JSON.");
-                            }
+                        _styles = JsonConvert.DeserializeObject<Dictionary<string, BorderStyle>>(json) ?? throw new InvalidOperationException("Failed to deserialize border styles from JSON.");
                     }
 
                 public void LoadJsonFromFile(string filePath)
@@ -43,11 +39,9 @@ namespace ConsoleFX
 
                 public void LoadJsonFromStream(System.IO.Stream stream)
                     {
-                        using (var reader = new System.IO.StreamReader(stream))
-                            {
-                                string json = reader.ReadToEnd();
-                                LoadJson(json);
-                            }
+                        using var reader = new System.IO.StreamReader(stream);
+                        string json = reader.ReadToEnd();
+                        LoadJson(json);
                     }
 
                 public BorderStyle? GetStyle(string name)

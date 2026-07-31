@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.SymbolStore;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -87,41 +89,47 @@ namespace ConsoleFX
                             }
                     }
 
-                private void _SetBorder(char leftTop, char rightTop, char leftBottom, char rightBottom, char horizontal, char vertical, string? ansi)
+                private void _SetBorder(char topLeft, char topRight, char bottomLeft, char bottomRight, char horizontal, char vertical, char verticalLeft, char verticalRight, char horizontalTop, char horizontalBottom, string? ansi)
                     {
                         string? styleCode = string.IsNullOrEmpty(ansi) ? null : $"{ESC}{ansi}";
 
                         for (int x = 0; x < Width; x++)
                             {
-                                SetStyled(x, 0, horizontal, styleCode);
+                                SetStyled(x,          0, horizontal, styleCode);
                                 SetStyled(x, Height - 1, horizontal, styleCode);
                             }
                         for (int y = 0; y < Height; y++)
                             {
-                                SetStyled(0, y, vertical, styleCode);
+                                SetStyled(        0, y, vertical, styleCode);
                                 SetStyled(Width - 1, y, vertical, styleCode);
                             }
 
-                        SetStyled(0, 0, leftTop, styleCode);
-                        SetStyled(Width - 1, 0, rightTop, styleCode);
-                        SetStyled(0, Height - 1, leftBottom, styleCode);
-                        SetStyled(Width - 1, Height - 1, rightBottom, styleCode);
+                        SetStyled(        0,          0, topLeft,     styleCode);
+                        SetStyled(Width - 1,          0, topRight,    styleCode);
+                        SetStyled(        0, Height - 1, bottomLeft,  styleCode);
+                        SetStyled(Width - 1, Height - 1, bottomRight, styleCode);
 
-                        Border["LeftTop"] = leftTop;
-                        Border["RightTop"] = rightTop;
-                        Border["LeftBottom"] = leftBottom;
-                        Border["RightBottom"] = rightBottom;
-                        Border["Horizontal"] = horizontal;
-                        Border["Vertical"] = vertical;
-                        Border["Ansi"] = ansi;
+                        Border["topLeft"]          = topLeft;
+                        Border["topRight"]         = topRight;
+                        Border["bottomLeft"]       = bottomLeft;
+                        Border["bottomRight"]      = bottomRight;
+                        Border["horizontal"]       = horizontal;
+                        Border["vertical"]         = vertical;
+                        Border["verticalLeft"]     = verticalLeft;
+                        Border["verticalRight"]    = verticalRight;
+                        Border["horizontalTop"]    = horizontalTop;
+                        Border["horizontalBottom"] = horizontalBottom;
+                        Border["ansi"]             = ansi;
                     }
 
                 public void SetBorder(BorderStyle style, string? ansi)
                     {
                         _SetBorder(
-                            style.TopLeft, style.TopRight,
-                            style.BottomLeft, style.BottomRight,
-                            style.Horizontal, style.Vertical,
+                            style.TopLeft,       style.TopRight,
+                            style.BottomLeft,    style.BottomRight,
+                            style.Horizontal,    style.Vertical,
+                            style.VerticalLeft,  style.VerticalRight,
+                            style.HorizontalTop, style.HorizontalBottom,
                             ansi
                         );
                     }
@@ -136,21 +144,28 @@ namespace ConsoleFX
                                 Resize(requiredWidth, Height);
                                 // Safely cast dictionary values
                                 _SetBorder(
-                                    (char)(Border["LeftTop"] ?? ' '), (char)(Border["RightTop"] ?? ' '),
-                                    (char)(Border["LeftBottom"] ?? ' '), (char)(Border["RightBottom"] ?? ' '),
-                                    (char)(Border["Horizontal"] ?? ' '), (char)(Border["Vertical"] ?? ' '),
-                                    (string?)Border["Ansi"]
+                                    (char)(Border["topLeft"] ?? ' '),       (char)(Border["topRight"] ?? ' '),
+                                    (char)(Border["bottomLeft"] ?? ' '),    (char)(Border["bottomRight"] ?? ' '),
+                                    (char)(Border["horizontal"] ?? ' '),    (char)(Border["vertical"] ?? ' '),
+                                    (char)(Border["verticalLeft"] ?? ' '),  (char)(Border["verticalRight"] ?? ' '),
+                                    (char)(Border["horizontalTop"] ?? ' '), (char)(Border["horizontalBottom"] ?? ' '),
+                                    (string?)Border["ansi"]
                                 );
                             }
 
-                        string? styleCode = string.IsNullOrEmpty(ansi) ? null : $"{ESC}{ansi}";
-                        string titleText = $" {title} ";
-                        int column = 2;
+                        string? styleCode    = string.IsNullOrEmpty(ansi) ? null : $"{ESC}{ansi}";
+                        string  titleText    = $"{Border["verticalRight"]} {title} {Border["verticalLeft"]}";
+                        int     column       = 2;
                         string? currentStyle = styleCode;
 
                         for (int i = 0; i < titleText.Length; i++)
                             {
-                                if (titleText[i] == '\x1B')
+                                if (i == 0 || i == (titleText.Length - 1))
+                                    {
+                                        SetStyled(column++, 0, titleText[i], (string?)Border["ansi"]);
+                                        continue;
+                                    }
+                                else if (titleText[i] == '\x1B')
                                     {
                                         string sequence = ExtractAnsi(titleText, ref i);
                                         currentStyle = (sequence.EndsWith("[0m") || sequence.EndsWith("[m")) ? styleCode : (currentStyle + sequence);

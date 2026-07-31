@@ -1,4 +1,4 @@
-$TargetFramework = if ($PSEdition -eq 'Desktop') { 'net48' } else { 'net6.0' }
+$TargetFramework = if ($PSEdition -eq 'Desktop') { 'net48' } else { 'net10.0' }
 $AssemblyPath = Join-Path $PSScriptRoot "lib/$TargetFramework/ConsoleFX.dll"
 $PublicPath = "$PSScriptRoot\Public"
 
