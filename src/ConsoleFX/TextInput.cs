@@ -27,6 +27,7 @@ namespace ConsoleFX
 
         public bool WasCancelled => _wasCancelled;
         public string Value      => _value;
+        public GridMenu? UnderlayMenu { get; set; }
 
         public string PromptColor = ConsoleFX.Foreground.Cyan;
         public string InputColor  = ConsoleFX.Foreground.White;
@@ -184,6 +185,10 @@ namespace ConsoleFX
                             Render(clearScreen: true);
                         }
                     }
+                    else
+                    {
+                        Thread.Sleep(10);
+                    }
                 }
             }
             finally
@@ -252,6 +257,12 @@ namespace ConsoleFX
 
         private void Render(bool clearScreen = false)
         {
+            if (UnderlayMenu is not null)
+            {
+                UnderlayMenu.RenderBackground();
+                clearScreen = false;
+            }
+
             if (clearScreen)
             {
                 ClearFromStartPosition();
@@ -306,7 +317,8 @@ namespace ConsoleFX
                 return Math.Max(Math.Max(_prompt.Length, _value.Length), 1);
             }
 
-            int width = Console.WindowWidth - leftOffset - (_border ? (2 + (_padding * 2)) : 0);
+            int rightInset = _fullWidth && _border ? _borderInset : 0;
+            int width = Console.WindowWidth - leftOffset - rightInset - (_border ? (2 + (_padding * 2)) : 0);
             return Math.Max(width, 1);
         }
 

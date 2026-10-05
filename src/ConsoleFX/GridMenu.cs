@@ -25,6 +25,7 @@ namespace ConsoleFX
 
         private bool _isRunning    = true;
         private bool _wasCancelled = false;
+        private bool _wasShortcutPressed = false;
         private bool _border       = true;
         private bool _fullWidth    = false;
 
@@ -33,6 +34,10 @@ namespace ConsoleFX
         private BorderStyle? _borderStyle;
         public GridMenu? UnderlayMenu { get; set; }
         public bool WasCancelled => _wasCancelled;
+        public ConsoleKey? ShortcutKey { get; set; }
+        public Func<ConsoleKeyInfo, bool>? ShortcutHandler { get; set; }
+        public bool WasShortcutPressed => _wasShortcutPressed;
+        public string? FooterText { get; set; }
 
         public string SelectedItemColor = ConsoleFX.Foreground.Red;
         public string DefaultColor      = ConsoleFX.Foreground.White;
@@ -144,6 +149,7 @@ namespace ConsoleFX
 
             _isRunning    = true;
             _wasCancelled = false;
+            _wasShortcutPressed = false;
             ClearFromStartRow();
                  _lastWindowWidth         = Console.WindowWidth;
                  _lastWindowHeight        = Console.WindowHeight;
@@ -171,12 +177,16 @@ namespace ConsoleFX
 
                     if (Console.KeyAvailable)
                     {
-                        var key = Console.ReadKey(true).Key;
-                        HandleInput(key);
+                        var keyInfo = Console.ReadKey(true);
+                        HandleInput(keyInfo);
                         if (_isRunning)
                         {
                             RenderWithUnderlay();
                         }
+                    }
+                    else
+                    {
+                        Thread.Sleep(10);
                     }
                 }
             }
@@ -258,6 +268,7 @@ namespace ConsoleFX
             if (!this._border)
             {
                 grid.Render();
+                RenderFooter();
                 return;
             }
 
@@ -282,6 +293,24 @@ namespace ConsoleFX
             }
             _lastRenderedOutput = inset > 0 ? charMatrix.Render(x: inset + 1) : charMatrix.Render();
             Console.Write(_lastRenderedOutput);
+            RenderFooter();
+        }
+
+        private void RenderFooter()
+        {
+            if (string.IsNullOrEmpty(FooterText))
+            {
+                return;
+            }
+
+            var width = Math.Max(1, Console.WindowWidth);
+            var footer = FooterText.Length > width ? FooterText[..width] : FooterText;
+            var column = Math.Max(0, (width - footer.Length) / 2);
+            Console.SetCursorPosition(column, Math.Max(0, Console.WindowHeight - 1));
+            Console.Write(Erase.EntireLine);
+            Console.Write(DefaultColor);
+            Console.Write(footer);
+            Console.Write(ConsoleFX.Format.Reset);
         }
 
         public string? SaveScreenOutput()
@@ -345,10 +374,17 @@ namespace ConsoleFX
             }
         }
 
-        private void HandleInput(ConsoleKey key)
+        private void HandleInput(ConsoleKeyInfo keyInfo)
         {
+            if (ShortcutHandler?.Invoke(keyInfo) == true || ShortcutKey == keyInfo.Key)
+            {
+                _wasShortcutPressed = true;
+                _isRunning = false;
+                return;
+            }
+
             int columns = Math.Max(1, _effectiveColumns);
-            switch (key)
+            switch (keyInfo.Key)
             {
                 case ConsoleKey.UpArrow:
                     if (_selectedIndex >= columns)
