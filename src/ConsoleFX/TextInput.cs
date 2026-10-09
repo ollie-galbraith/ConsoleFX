@@ -4,6 +4,18 @@ using System.Text;
 
 namespace ConsoleFX
 {
+    public sealed class TextInputCompletionOption
+    {
+        public string Value { get; }
+        public string DisplayText { get; }
+
+        public TextInputCompletionOption(string value, string displayText)
+        {
+            Value = value;
+            DisplayText = displayText;
+        }
+    }
+
     public class TextInput
     {
         private string _prompt;
@@ -24,11 +36,15 @@ namespace ConsoleFX
 
         private string? _borderTitle = null;
         private BorderStyle? _borderStyle;
+        private IReadOnlyList<TextInputCompletionOption> _tabCompletionOptions = [];
+        private int _selectedTabCompletion = -1;
+        private string? _tabCompletionDisplay;
 
         public bool WasCancelled => _wasCancelled;
         public string Value      => _value;
         public GridMenu? UnderlayMenu { get; set; }
         public Func<string, string?>? TabCompletionHandler { get; set; }
+        public Func<string, IReadOnlyList<TextInputCompletionOption>>? TabCompletionOptionsHandler { get; set; }
 
         public string PromptColor = ConsoleFX.Foreground.Cyan;
         public string InputColor  = ConsoleFX.Foreground.White;
@@ -151,6 +167,7 @@ namespace ConsoleFX
             _value            = initialValue ?? string.Empty;
             _isRunning        = true;
             _wasCancelled     = false;
+            ClearTabCompletion();
             _lastWindowWidth  = Console.WindowWidth;
             _lastWindowHeight = Console.WindowHeight;
 
@@ -211,7 +228,7 @@ namespace ConsoleFX
         private void MoveToNextLine()
         {
             // Calculate the last row occupied by the rendered input
-            int contentRows = _promptInline ? 1 : 2;
+            int contentRows = (_promptInline ? 1 : 2) + (_tabCompletionDisplay is null ? 0 : 1);
             int totalRows   = _border ? contentRows + 2 : contentRows;                       // +2 for top/bottom border
             int lastRow     = _startRow + totalRows - 1;
             int nextRow     = Math.Min(lastRow + 1, Math.Max(Console.BufferHeight - 1, 0));
@@ -231,6 +248,13 @@ namespace ConsoleFX
                     _isRunning    = false;
                     return;
                 case ConsoleKey.Tab:
+                    if (TabCompletionOptionsHandler is not null)
+                    {
+                        var reverse = (keyInfo.Modifiers & ConsoleModifiers.Shift) != 0;
+                        CompleteTabOptions(reverse);
+                        return;
+                    }
+
                     var completion = TabCompletionHandler?.Invoke(_value);
                     if (completion is not null)
                     {
@@ -238,6 +262,7 @@ namespace ConsoleFX
                     }
                     return;
                 case ConsoleKey.Backspace: 
+                    ClearTabCompletion();
                     if (_value.Length > 0)
                     {
                         _value = _value.Substring(0, _value.Length - 1);
@@ -247,8 +272,43 @@ namespace ConsoleFX
 
             if (!char.IsControl(keyInfo.KeyChar))
             {
+                ClearTabCompletion();
                 _value += keyInfo.KeyChar;
             }
+        }
+
+        private void CompleteTabOptions(bool reverse)
+        {
+            if (_tabCompletionOptions.Count > 1 &&
+                _selectedTabCompletion >= 0 &&
+                _value == _tabCompletionOptions[_selectedTabCompletion].Value)
+            {
+                var step = reverse ? _tabCompletionOptions.Count - 1 : 1;
+                _selectedTabCompletion = (_selectedTabCompletion + step) % _tabCompletionOptions.Count;
+            }
+            else
+            {
+                _tabCompletionOptions = TabCompletionOptionsHandler?.Invoke(_value) ?? [];
+                if (_tabCompletionOptions.Count == 0)
+                {
+                    ClearTabCompletion();
+                    return;
+                }
+
+                _selectedTabCompletion = reverse ? _tabCompletionOptions.Count - 1 : 0;
+            }
+
+            _value = _tabCompletionOptions[_selectedTabCompletion].Value;
+            var labels = _tabCompletionOptions.Select((option, index) =>
+                index == _selectedTabCompletion ? $"[{option.DisplayText}]" : option.DisplayText);
+            _tabCompletionDisplay = $"Options: {string.Join("  ", labels)}";
+        }
+
+        private void ClearTabCompletion()
+        {
+            _tabCompletionOptions = [];
+            _selectedTabCompletion = -1;
+            _tabCompletionDisplay = null;
         }
 
         private void ClearFromStartPosition()
@@ -402,11 +462,22 @@ namespace ConsoleFX
         )
         {
             bool   charMatrixFullWidth = _fullWidth && leftOffset == 0;
-            string[] lines             = _promptInline
-                ? new[] { $"{PromptColor}{promptDisplay}{InputColor}{visibleInput}" }
-                : new[] { $"{PromptColor}{promptDisplay}", $"{InputColor}{visibleInput}" };
+            var lines = new List<string>();
+            if (_promptInline)
+            {
+                lines.Add($"{PromptColor}{promptDisplay}{InputColor}{visibleInput}");
+            }
+            else
+            {
+                lines.Add($"{PromptColor}{promptDisplay}");
+                lines.Add($"{InputColor}{visibleInput}");
+            }
+            if (_tabCompletionDisplay is not null)
+            {
+                lines.Add(_tabCompletionDisplay);
+            }
 
-            CharMatrix charMatrix = new CharMatrix(lines, _padding, charMatrixFullWidth);
+            CharMatrix charMatrix = new CharMatrix(lines.ToArray(), _padding, charMatrixFullWidth);
             charMatrix.SetBorder(
                 _borderStyle
                     ?? throw new InvalidOperationException("Border style not initialized."),
@@ -456,6 +527,11 @@ namespace ConsoleFX
                 Console.Write(
                     $"{PromptColor}{promptDisplay}{InputColor}{visibleInput}{ConsoleFX.Format.Reset}"
                 );
+                    if (_tabCompletionDisplay is not null)
+                    {
+                        Console.SetCursorPosition(safeColumn, Math.Min(promptRow + 1, Math.Max(Console.WindowHeight - 1, 0)));
+                        Console.Write($"{_tabCompletionDisplay}{ConsoleFX.Format.Reset}");
+                    }
                 PositionCursor(safeColumn + rawPromptLength + rawInputLength, inputRow);
                 return;
             }
@@ -463,6 +539,11 @@ namespace ConsoleFX
             Console.Write($"{PromptColor}{promptDisplay}{ConsoleFX.Format.Reset}");
             Console.SetCursorPosition(safeColumn, inputRow);
             Console.Write($"{InputColor}{visibleInput}{ConsoleFX.Format.Reset}");
+            if (_tabCompletionDisplay is not null)
+            {
+                Console.SetCursorPosition(safeColumn, Math.Min(inputRow + 1, Math.Max(Console.WindowHeight - 1, 0)));
+                Console.Write($"{_tabCompletionDisplay}{ConsoleFX.Format.Reset}");
+            }
 
             PositionCursor(safeColumn + rawInputLength, inputRow);
         }
