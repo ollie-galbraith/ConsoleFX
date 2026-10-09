@@ -28,6 +28,7 @@ namespace ConsoleFX
         public bool WasCancelled => _wasCancelled;
         public string Value      => _value;
         public GridMenu? UnderlayMenu { get; set; }
+        public Func<string, string?>? TabCompletionHandler { get; set; }
 
         public string PromptColor = ConsoleFX.Foreground.Cyan;
         public string InputColor  = ConsoleFX.Foreground.White;
@@ -228,6 +229,13 @@ namespace ConsoleFX
                 case ConsoleKey.Escape: 
                     _wasCancelled = true;
                     _isRunning    = false;
+                    return;
+                case ConsoleKey.Tab:
+                    var completion = TabCompletionHandler?.Invoke(_value);
+                    if (completion is not null)
+                    {
+                        _value = completion;
+                    }
                     return;
                 case ConsoleKey.Backspace: 
                     if (_value.Length > 0)
