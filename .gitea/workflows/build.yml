@@ -18,7 +18,7 @@ on:
 
 jobs:
   build:
-    name: Verify Linux build (net48 + net10.0)
+    name: Build ConsoleFX (net48 + net10.0)
     runs-on: ubuntu-latest
     container:
       image: ${{ secrets.CONTAINER_REGISTRY }}/pwsh:latest
@@ -32,7 +32,16 @@ jobs:
       - name: Build
         run: dotnet build src/ConsoleFX/ConsoleFX.csproj -c Release
 
+      - name: Upload built module files
+        uses: actions/upload-artifact@v3
+        with:
+          name: consolefx-built-lib
+          path: lib/
+          if-no-files-found: error
+
   publish:
+    name: Publish ConsoleFX Powershell Module to PSGallery
+    needs: build
     runs-on: ubuntu-latest
     container:
       image: ${{ secrets.CONTAINER_REGISTRY }}/pwsh:latest
@@ -43,18 +52,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
+      - name: Download built module files
+        uses: actions/download-artifact@v3
+        with:
+          name: consolefx-built-lib
+          path: lib/
+
       - name: Publish PSModuleDocGen Module
         shell: pwsh
         run: |
-          $StagingDir = [System.IO.Path]::GetTempPath()
-          New-Item -ItemType Directory -Path $StagingDir | Out-Null
+          $StagingDir = Join-Path ([System.IO.Path]::GetTempPath()) -ChildPath ConsoleFX
+          If((Test-Path $StagingDir) -eq $False)
+              {
+                  New-Item -ItemType Directory -Path $StagingDir | Out-Null
+              }
 
           $PathsToPublish = @(
-              .\ConsoleFX.psd1
-              .\ConsoleFX.psm1
-              .\lib
-              .\Public
-              .\Private
+              '.\ConsoleFX.psd1',
+              '.\ConsoleFX.psm1',
+              '.\lib',
+              '.\Public',
+              '.\Private'
           )
 
           Foreach ($Path in $PathsToPublish)
