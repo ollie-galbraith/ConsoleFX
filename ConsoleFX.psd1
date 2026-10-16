@@ -12,7 +12,7 @@
 RootModule = 'ConsoleFX.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0.0.6'
+ModuleVersion = '1.0.0.7'
 
 # Supported PSEditions
 CompatiblePSEditions = @(
@@ -103,7 +103,6 @@ FileList = @(
     ".\Public\Read-TextInput.ps1",
     ".\Public\Select-GridMenu.ps1",
     ".\Public\Show-LayeredGridMenu.ps1",
-    ".\Private\Add-DynamicParameter.ps1",
     ".\Private\ConvertTo-Case.ps1",
     ".\Private\Resolve-ColorCode.ps1",
     ".\Private\Split-LongString.ps1"
