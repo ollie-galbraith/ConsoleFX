@@ -54,7 +54,7 @@ DotNetFrameworkVersion = '4.8'
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-# RequiredModules = @()
+RequiredModules = @('PSDynamicParameters')
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
@@ -98,7 +98,7 @@ FileList = @(
     ".\lib\net48\ConsoleFX.dll",
     ".\lib\net48\Newtonsoft.Json.dll",
     ".\lib\net48\System.Management.Automation.dll",
-    ".\lib\net6.0\ConsoleFX.dll",
+    ".\lib\net10.0\ConsoleFX.dll",
     ".\Public\Add-Border.ps1",
     ".\Public\Read-TextInput.ps1",
     ".\Public\Select-GridMenu.ps1",
@@ -124,10 +124,10 @@ PrivateData = @{
         )
 
         # A URL to the license for this module.
-        LicenseUri = 'https://github.com/olivergalbraith/ConsoleFX/blob/main/LICENSE'
+        LicenseUri = 'https://github.com/ollie-galbraith/ConsoleFX/blob/main/LICENSE'
 
         # A URL to the main website for this project.
-        ProjectUri = 'https://github.com/olivergalbraith/ConsoleFX'
+        ProjectUri = 'https://github.com/ollie-galbraith/ConsoleFX'
 
         # A URL to an icon representing this module.
         # IconUri = ''

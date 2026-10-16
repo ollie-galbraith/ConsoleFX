@@ -52,7 +52,6 @@ Function Resolve-ColorCode
             {
                 If($ColorCode -isnot [ConsoleFx.ColorModel.RGB])
                     {
-                        $Type = $ColorCode.GetType().Name
                         $ColorConversionParams = @{
                             To = 'RGB'
                             ColorCode = $ColorCode

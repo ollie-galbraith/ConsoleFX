@@ -304,7 +304,7 @@ namespace ConsoleFX
             }
 
             var width = Math.Max(1, Console.WindowWidth);
-            var footer = FooterText.Length > width ? FooterText[..width] : FooterText;
+            var footer = FooterText.Length > width ? FooterText.Substring(0, width) : FooterText;
             var column = Math.Max(0, (width - footer.Length) / 2);
             Console.SetCursorPosition(column, Math.Max(0, Console.WindowHeight - 1));
             Console.Write(Erase.EntireLine);

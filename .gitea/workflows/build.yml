@@ -6,55 +6,67 @@ on:
       - main
     paths:
       - 'src/ConsoleFX/**'
+      - '*.psd1'
       - '.gitea/workflows/build.yml'
   pull_request:
     branches:
       - main
     paths:
       - 'src/ConsoleFX/**'
+      - '*.psd1'
       - '.gitea/workflows/build.yml'
 
 jobs:
-  build-windows:
-    name: Build on Windows (net48 + net6.0)
-    runs-on: windows-latest
+  build:
+    name: Verify Linux build (net48 + net10.0)
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ secrets.CONTAINER_REGISTRY }}/pwsh:latest
+      credentials:
+        username: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}
+        password: ${{ secrets.CONTAINER_REGISTRY_PAT }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '6.0.x'
-
-      - name: Clear NuGet cache
-        run: dotnet nuget locals all --clear
-
-      - name: Restore dependencies
-        run: dotnet restore src/ConsoleFX/ConsoleFX.csproj
-
       - name: Build
-        run: dotnet build src/ConsoleFX/ConsoleFX.csproj -c Release --no-restore
+        run: dotnet build src/ConsoleFX/ConsoleFX.csproj -c Release
 
-      - name: Configure git
+  publish:
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ secrets.CONTAINER_REGISTRY }}/pwsh:latest
+      credentials:
+        username: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}
+        password: ${{ secrets.CONTAINER_REGISTRY_PAT }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Publish PSModuleDocGen Module
+        shell: pwsh
         run: |
-          git config --local user.email "gitea-actions@localhost"
-          git config --local user.name "Gitea Actions"
+          $StagingDir = [System.IO.Path]::GetTempPath()
+          New-Item -ItemType Directory -Path $StagingDir | Out-Null
 
-      - name: Commit and push DLLs
-        run: |
-          git add lib/net48/ lib/net6.0/
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "chore: update ConsoleFX DLLs from build [skip ci]"
-            git push
-          fi
-        env:
-          GITEA_TOKEN: ${{ secrets.GIT_TOKEN }}
+          $PathsToPublish = @(
+              .\ConsoleFX.psd1
+              .\ConsoleFX.psm1
+              .\lib
+              .\Public
+              .\Private
+          )
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: ConsoleFX-windows-release
-          path: src/ConsoleFX/bin/Release/
+          Foreach ($Path in $PathsToPublish)
+              {
+                  Copy-Item -Path $Path -Destination $StagingDir -Recurse
+              }
+
+          $RequiredModules = Import-PowerShellDataFile -Path (Get-ChildItem -Filter *.psd1 | Select-Object -First 1).FullName
+          ForEach ($Module in $RequiredModules.RequiredModules)
+              {
+                  Install-PSResource -Name $Module -TrustRepository
+              }
+
+          Set-Location $StagingDir
+          Publish-PSResource -Path ./ -Repository 'PSGallery' -ApiKey ${{ secrets.PSGALLERY_API_KEY }}

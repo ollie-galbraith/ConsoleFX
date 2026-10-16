@@ -9,9 +9,17 @@ A PowerShell module for building interactive terminal UIs. It provides bordered 
 | Requirement | Value |
 |---|---|
 | PowerShell Desktop (.NET 4.8) | Windows PowerShell 5.1 |
-| PowerShell Core (.NET 6) | PowerShell 7+ |
+| PowerShell Core (.NET 10) | PowerShell 7 running on .NET 10 |
 
-The C# assembly must be built before the module can be imported. Both targets are compiled to `lib/net48/` and `lib/net6.0/` respectively.
+The C# assembly must be built before the module can be imported. The project targets .NET Framework 4.8 for Windows PowerShell 5.1 and .NET 10 for PowerShell Core. Both targets are compiled to `lib/net48/` and `lib/net10.0/`.
+
+Build both assemblies on Windows or Linux with the .NET 10 SDK:
+
+```sh
+dotnet build src/ConsoleFX/ConsoleFX.csproj --configuration Release
+```
+
+The .NET Framework 4.8 target is cross-compiled on Linux using reference assemblies; its resulting `lib/net48/ConsoleFX.dll` runs under Windows PowerShell 5.1 on Windows.
 
 ---
 
@@ -327,7 +335,7 @@ ConsoleFX/
 │
 ├── lib/
 │   ├── net48/ConsoleFX.dll   # .NET Framework 4.8 build
-│   ├── net6.0/ConsoleFX.dll  # .NET 6 build
+│   ├── net10.0/ConsoleFX.dll # .NET 10 build
 │   ├── borders.json          # Border character sets (embedded resource)
 │   └── spinners.json         # Spinner frame sets
 │
