@@ -27,7 +27,7 @@ jobs:
         password: ${{ secrets.CONTAINER_REGISTRY_PAT }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - name: Build
         run: dotnet build src/ConsoleFX/ConsoleFX.csproj -c Release
